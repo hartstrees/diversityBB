@@ -138,8 +138,8 @@ options(timeout=60*30) #timeout downloads that last longer than 30 minutes
 
 # Set directory structure for project
 dir.create(here("Data/"), showWarnings = FALSE)
-dir.create(here("Code/"), showWarnings = FALSE)
 dir.create(here("Results/"), showWarnings = FALSE)
+dir.create(here("Results/Figures/"), showWarnings = FALSE)
 ```
 
 # Abstract
@@ -230,7 +230,7 @@ wbbb <- 11015 # western balsam bark beetle
 sfm <- 80002 # subalpine fir mortality
 ```
 
-The study area consists of subalpine lodgepole pine (*Pinus contorta*), subalpine fir (*Abies lasiocarpa*), and Engelmann spruce (*Picea engelmannii*) forest in the Intermountain West (i.e., Arizona, New Mexico, Colorado, Utah, Nevada, Idaho, Montana, Wyoming).
+The study area consists of subalpine lodgepole pine (*Pinus contorta*), subalpine fir (*Abies lasiocarpa*), and Engelmann spruce (*Picea engelmannii*) forest in the Intermountain West (i.e., Arizona, New Mexico, Colorado, Utah, Nevada, Idaho, Montana, Wyoming; Fig. \@ref(fig:FigSA)
 
 
 ## Data
@@ -534,7 +534,7 @@ write.csv(df, here("Data/Processed/FIAdat-df.csv"),row.names=F)
 ```
 
 #### Selection of plots
-We selected all plots that were part of the annnual inventory and where all subplots were inventoried. 
+We selected all plots that were part of the annual inventory and where all subplots were inventoried. 
 
 Within this plots, we characterized stand structure and composition using only live and recently killed (i.e. killed within the past ~10 years) trees greater that 12.7 cm DBH within the subplot.
 
@@ -876,9 +876,9 @@ df$propBA.ABLA <- df$BA.ABLA / df$BA.total *100
 ```
 
 ```{r map study area of hosts, eval=F}
-f19 <- stars::read_stars("/Volumes/GoogleDrive/My Drive/RESEARCH/GitHub/bbdiversity/Data/Spatial/ITSPM2002-subalpine/f19/w001001.adf", proxy=F)
-f93 <- stars::read_stars("/Volumes/GoogleDrive/My Drive/RESEARCH/GitHub/bbdiversity/Data/Spatial/ITSPM2002-subalpine/f93/w001001.adf", proxy=F)
-f108 <- stars::read_stars("/Volumes/GoogleDrive/My Drive/RESEARCH/GitHub/bbdiversity/Data/Spatial/ITSPM2002-subalpine/f108/w001001.adf", proxy=F)
+f19 <- stars::read_stars(here("Data/Spatial/ITSPM2002-subalpine/f19/w001001.adf"), proxy=F)
+f93 <- stars::read_stars(here("/Data/Spatial/ITSPM2002-subalpine/f93/w001001.adf"), proxy=F)
+f108 <- stars::read_stars(here("/Data/Spatial/ITSPM2002-subalpine/f108/w001001.adf"), proxy=F)
 
 # reclassify to rasters to presence (1) and absence (0)
 f19[f19>0] <- 1 
@@ -964,7 +964,6 @@ affectednhosts <- df[df$focalhost=="Any",] %>% group_by(nhosts, affected) %>% su
 affectednhosts<- affectednhosts[affectednhosts$affected=="affected", ]
 affectednhosts<- affectednhosts[order(affectednhosts$freq, decreasing=T),]
 
-
 affectedhostgroups <- df[df$focalhost=="Any",] %>% group_by(hosts, affected) %>% summarise(n = n())%>% mutate(freq = prop.table(n))
 affectedhostgroups<- affectedhostgroups[affectedhostgroups$affected=="affected", ]
 affectedhostgroups<- affectedhostgroups[order(affectedhostgroups$freq, decreasing=T),]
@@ -996,76 +995,140 @@ whatever <- dev.off()
 #df.sub <- df[df$nplots>5, ]
 df.sub <- df
 ## remove plots with other hosts
-df.sub  <- df.sub [df.sub$BA.Otherhosts==0,]
+#df.sub  <- df.sub [df.sub$BA.Otherhosts==0,]
 #nrow(datBB.c)
 df.sub  <- df.sub [df.sub$BA.Allhosts/df.sub$BA.total>0.75,]
+
+# select plots where focal agent is all 
+
+df.sub <- df.sub[df.sub$focalagent=="Any", ]
 ```
 
-```{r select plots with large & abundant, eval=T}
-PICO.BA.threshold <- quantile(df.sub[df.sub$agentMPB=="MPB", ]$BA.PICO, 0.10)
-PIEN.BA.threshold <- quantile(df.sub[df.sub$agentSB=="SB", ]$BA.PIEN, 0.10)
-ABLA.BA.threshold <- quantile(df.sub[df.sub$agentWBBB=="WBBB", ]$BA.ABLA, 0.10)
+```{r select plots with large & abundant hosts, eval=T}
+threshold <- 0.10
+PICO.BA.threshold <- quantile(df.sub[df.sub$agentMPB=="MPB", ]$BA.PICO, threshold)
+PIEN.BA.threshold <- quantile(df.sub[df.sub$agentSB=="SB", ]$BA.PIEN, threshold)
+ABLA.BA.threshold <- quantile(df.sub[df.sub$agentWBBB=="WBBB", ]$BA.ABLA, threshold)
 
-PICO.QMD.threshold <- quantile(df.sub[df.sub$agentMPB=="MPB", ]$QMD.PICO, 0.10)
-PIEN.QMD.threshold <- quantile(df.sub[df.sub$agentSB=="SB", ]$QMD.PIEN, 0.10)
-ABLA.QMD.threshold <- quantile(df.sub[df.sub$agentWBBB=="WBBB", ]$QMD.ABLA, 0.10)
-n
-# PICO, PIEN & ABLA
-df.sub.PICO.PIEN.ABLA <- df.sub[df.sub$BA.PICO >= PICO.BA.threshold & df.sub$BA.PIEN >= PIEN.BA.threshold & df.sub$BA.ABLA >= ABLA.BA.threshold, ]
-
-df.sub.PICO.PIEN.ABLA <- df.sub.PICO.PIEN.ABLA[df.sub.PICO.PIEN.ABLA$QMD.PICO >= PICO.QMD.threshold & df.sub.PICO.PIEN.ABLA$QMD.PIEN >= PIEN.QMD.threshold & df.sub.PICO.PIEN.ABLA$QMD.ABLA >= ABLA.QMD.threshold, ]
-
-df.sub.PICO.PIEN.ABLA$focalhosts2 <- "PICO, PIEN & ABLA"
-df.sub.PICO.PIEN.ABLA$nhosts2 <- 3
-
-# PICO & PIEN
-df.sub.PICO.PIEN<- df.sub[df.sub$BA.PICO >= PICO.BA.threshold & df.sub$BA.PIEN >= PIEN.BA.threshold, ]
-
-df.sub.PICO.PIEN <- df.sub.PICO.PIEN[df.sub.PICO.PIEN$QMD.PICO >= PICO.QMD.threshold & df.sub.PICO.PIEN$QMD.PIEN >= PIEN.QMD.threshold, ]
-
-df.sub.PICO.PIEN$focalhosts2 <- "PICO & PIEN"
-df.sub.PICO.PIEN < - df.sub.PICO.PIEN[!(df.sub.PICO.PIEN$PLT_CN %in% df.sub.PICO.PIEN$PLT_CN), ]
-df.sub.PICO.PIEN$nhosts2 <- 2
-
-# PICO & ABLA
-df.sub.PICO.ABLA<- df.sub[df.sub$BA.PICO >= PICO.BA.threshold & df.sub$BA.ABLA >= ABLA.BA.threshold, ]
-
-df.sub.PICO.ABLA <- df.sub.PICO.ABLA[df.sub.PICO.ABLA$QMD.PICO >= PICO.QMD.threshold & df.sub.PICO.ABLA$QMD.ABLA >= ABLA.QMD.threshold, ]
-
-df.sub.PICO.ABLA$focalhosts2 <- "PICO & ABLA"
-df.sub.PICO.ABLA$nhosts2 <- 2
-
-df.sub.PICO.ABLA<- df.sub.PICO.ABLA[!(df.sub.PICO.ABLA$PLT_CN %in% df.sub.PICO.PIEN.ABLA$PLT_CN), ]
+PICO.QMD.threshold <- quantile(df.sub[df.sub$agentMPB=="MPB", ]$QMD.PICO, threshold)
+PIEN.QMD.threshold <- quantile(df.sub[df.sub$agentSB=="SB", ]$QMD.PIEN, threshold)
+ABLA.QMD.threshold <- quantile(df.sub[df.sub$agentWBBB=="WBBB", ]$QMD.ABLA, threshold)
 
 
-# PIEN & ABLA
-df.sub.PIEN.ABLA<- df.sub[df.sub$BA.PIEN >= PIEN.BA.threshold & df.sub$BA.ABLA >= ABLA.BA.threshold, ]
+df.sub$hosts2.PICO <- "absent"
+df.sub[df.sub$QMD.PICO >PICO.QMD.threshold & df.sub$BA.PICO >PICO.BA.threshold, "hosts2.PICO"] <- "PICO"
+df.sub$hosts2.PIEN <- "absent"
+df.sub[df.sub$QMD.PIEN >PIEN.QMD.threshold & df.sub$BA.PIEN >PIEN.BA.threshold, "hosts2.PIEN"] <- "PIEN"
+df.sub$hosts2.ABLA<- "absent"
+df.sub[df.sub$QMD.ABLA >ABLA.QMD.threshold & df.sub$BA.ABLA >ABLA.BA.threshold, "hosts2.ABLA"] <- "ABLA"
 
-df.sub.PIEN.ABLA <- df.sub.PIEN.ABLA[df.sub.PIEN.ABLA$QMD.PIEN >= PIEN.QMD.threshold & df.sub.PIEN.ABLA$QMD.ABLA >= ABLA.QMD.threshold, ]
-
-df.sub.PIEN.ABLA$focalhosts2 <- "PIEN & ABLA"
-df.sub.PIEN.ABLA$nhosts2 <- 2
-
-df.sub.PIEN.ABLA <- df.sub.PIEN.ABLA[!(df.sub.PIEN.ABLA$PLT_CN %in% df.sub.PICO.PIEN.ABLA$PLT_CN), ]
-
-###
-df.focal2 <- rbind(df.sub.PICO.ABLA, df.sub.PICO.PIEN)
-df.focal2 <- rbind(df.focal2, df.sub.PICO.PIEN)
-df.focal2 <- rbind(df.focal2, df.sub.PICO.PIEN.ABLA)
-
-## Affected hosts
-affectedhosts2 <- df.focal2 %>% group_by(focalhosts2, affected) %>% summarise(n = n())%>% mutate(freq = prop.table(n))
-affectedhosts2[affectedhosts2$affected=="affected",]
-affectednhosts2 <- df.focal2 %>% group_by(nhosts2, affected) %>% summarise(n = n())%>% mutate(freq = prop.table(n))
-affectednhosts2[affectednhosts2$affected=="affected",]
-### MPB
-
-MPBnhosts2 <- df.focal2 %>% group_by(nhosts2, agentMPB) %>% summarise(n = n())%>% mutate(freq = prop.table(n))
+df.sub$hosts2<- NA
+df.sub$hosts2<- do.call(paste, c(df.sub[c("hosts2.PICO", "hosts2.PIEN", "hosts2.ABLA")],sep="-"))
+df.sub <- df.sub[!df.sub$hosts2 =='absent-absent-absent',]
+df.sub$hosts2 <- factor(df.sub$hosts2, levels=c('PICO-absent-absent','absent-absent-ABLA', 'absent-PIEN-absent', 'PICO-PIEN-absent',   'PICO-absent-ABLA', 'absent-PIEN-ABLA', 'PICO-PIEN-ABLA'), labels= c('PICO', 'ABLA', 'PIEN', 'PICO & PIEN', 'PICO & ABLA', 'PIEN & ABLA', 'PICO, PIEN, & ABLA'), ordered=TRUE)
+df.sub$nhosts2 <- as.numeric(factor(df.sub$hosts2, levels=c('PICO', 'ABLA', 'PIEN', 'PICO & PIEN', 'PICO & ABLA', 'PIEN & ABLA', 'PICO, PIEN, & ABLA'), labels=c(1, 1, 1, 2,2,2, 3)))
 
 
-### PIEN
+### Number of hosts
 
-### ABLA
+#### Any hosts
+affectednhosts2 <- df.sub %>% group_by(nhosts2, affected) %>% summarise(n = n())%>% mutate(freq = prop.table(n))
+affectednhosts2 <- affectednhosts2[affectednhosts2$affected=="affected",]
+colnames(affectednhosts2) <- c("nhosts", "agent", "n", "freq")
+affectednhosts2$agent <- "Any"
+
+#### MPB
+MPBnhosts2 <- df.sub %>% group_by(nhosts2, agentMPB) %>% summarise(n = n())%>% mutate(freq = prop.table(n))
+MPBnhosts2 <- MPBnhosts2[MPBnhosts2$agentMPB=="MPB",]
+colnames(MPBnhosts2) <- c("nhosts", "agent", "n", "freq")
+
+#### SB
+SBnhosts2 <- df.focal2 %>% group_by(nhosts2, agentSB) %>% summarise(n = n())%>% mutate(freq = prop.table(n))
+SBnhosts2 <- SBnhosts2[SBnhosts2$agentSB=="SB",]
+colnames(SBnhosts2) <- c("nhosts", "agent", "n", "freq")
+
+#### WBBB
+WBBBnhosts2 <- df.focal2 %>% group_by(nhosts2, agentWBBB) %>% summarise(n = n())%>% mutate(freq = prop.table(n))
+WBBBnhosts2 <- WBBBnhosts2[WBBBnhosts2$agentWBBB=="WBBB",]
+colnames(WBBBnhosts2) <- c("nhosts", "agent", "n", "freq")
+
+#### Merge
+affectednhosts2 <- rbind(as.data.frame(affectednhosts2),as.data.frame(MPBnhosts2))
+affectednhosts2 <- rbind(affectednhosts2, as.data.frame(SBnhosts2))
+affectednhosts2 <- rbind(affectednhosts2, as.data.frame(WBBBnhosts2))
+
+### Host identity
+#### Any hosts
+affectedhosts2 <- df.sub %>% group_by(hosts2, affected) %>% summarise(n = n())%>% mutate(freq = prop.table(n))
+affectedhosts2 <- affectedhosts2[affectedhosts2$affected=="affected",]
+colnames(affectedhosts2) <- c("hosts", "agent", "n", "freq")
+affectedhosts2$agent <- "Any"
+
+#### MPB
+MPBhosts2 <- df.sub %>% group_by(hosts2, agentMPB) %>% summarise(n = n())%>% mutate(freq = prop.table(n))
+MPBhosts2 <- MPBhosts2[MPBhosts2$agentMPB=="MPB",]
+colnames(MPBhosts2) <- c("hosts", "agent", "n", "freq")
+
+#### SB
+SBhosts2 <- df.sub  %>% group_by(hosts2, agentSB) %>% summarise(n = n())%>% mutate(freq = prop.table(n))
+SBhosts2 <- SBhosts2[SBhosts2$agentSB=="SB",]
+colnames(SBhosts2) <- c("hosts", "agent", "n", "freq")
+
+#### WBBB
+WBBBhosts2 <-df.sub  %>% group_by(hosts2, agentWBBB) %>% summarise(n = n())%>% mutate(freq = prop.table(n))
+WBBBhosts2 <- WBBBhosts2[WBBBhosts2$agentWBBB=="WBBB",]
+colnames(WBBBhosts2) <- c("hosts", "agent", "n", "freq")
+
+#### Merge
+affectedhosts2 <- rbind(as.data.frame(affectedhosts2),as.data.frame(MPBhosts2))
+affectedhosts2 <- rbind(affectedhosts2, as.data.frame(SBhosts2))
+affectedhosts2 <- rbind(affectedhosts2, as.data.frame(WBBBhosts2))
+affectedhosts2$hosts <- factor(affectedhosts2$hosts, levels=c("PICO", "PIEN", "ABLA", "PICO & PIEN", "PICO & ABLA", "PIEN & ABLA", "PICO, PIEN, & ABLA"), ordered=T)
+
+
+### test for significant differences
+affectedhosts3 <- as.data.frame(table(df.sub$hosts2))
+colnames(affectedhosts3) <- c("hosts", "N")
+
+affectedhosts3 <- merge(affectedhosts3, affectedhosts2[affectedhosts2$agent=="Any", c("hosts", "n")], by="hosts", all=T)
+colnames (affectedhosts3 ) <- c("hosts", "n", "Any")
+affectedhosts3 <- merge(affectedhosts3, affectedhosts2[affectedhosts2$agent=="MPB", c("hosts", "n")], by="hosts", all=T)
+colnames (affectedhosts3 ) <- c("hosts", "n", "Any", "MPB")
+affectedhosts3 <- merge(affectedhosts3, affectedhosts2[affectedhosts2$agent=="SB", c("hosts", "n")], by="hosts", all=T)
+colnames (affectedhosts3 ) <- c("hosts", "n", "Any", "MPB", "SB")
+affectedhosts3 <- merge(affectedhosts3, affectedhosts2[affectedhosts2$agent=="WBBB", c("hosts", "n")], by="hosts", all=T)
+colnames (affectedhosts3 ) <- c("hosts", "n", "Any", "MPB", "SB", "WBBB")
+
+
+
+affectedhosts3$label <- paste0(do.call(paste, c(affectedhosts3[c("hosts", "n")],sep="\n(n=")), ")")
+
+
+affectedhosts2$p.value <- NA
+affectedhosts2$statistic <- NA
+for(j in unique(affectedhosts2$hosts)){
+  affectedhosts2j <- affectedhosts2[affectedhosts2$hosts==j, ]
+  affectedhosts3j <- affectedhosts3[affectedhosts3$hosts==j,]
+  for(k in unique(affectedhosts2j$agent)[!unique(affectedhosts2j$agent)=="Any"]){
+    
+    test <- prop.test(x=do.call(c,affectedhosts3j[, c("Any", k)]), n=rep(affectedhosts3j[, "n"],2), alternative="greater")
+  affectedhosts2[affectedhosts2$hosts==j & affectedhosts2$agent==k, "p.value"] <- round(test$p.value,3)
+    affectedhosts2[affectedhosts2$hosts==j & affectedhosts2$agent==k, "statistic"] <- test$statistic
+  }
+}
+affectedhosts2$symbol <- ifelse( affectedhosts2$p.value<0.05, "*", "")
+affectedhosts2$agent <- factor(affectedhosts2$agent, levels=c("MPB", "SB", "WBBB", "Any"), ordered=T)
+
+affectedhosts2 <- affectedhosts2[affectedhosts2$hosts %in% c("PICO & PIEN", "PICO & ABLA", "PIEN & ABLA", "PICO, PIEN, & ABLA"), ]
+affectedhosts2$hosts <- factor(affectedhosts2$hosts, levels=c("PICO & PIEN", "PICO & ABLA", "PIEN & ABLA", "PICO, PIEN, & ABLA"), labels=affectedhosts3$label[c(4,3,7,5)], ordered=T)
+
+Fig.file <- here("Results/Figures/Figure-OccurenceGivenSuitableStands.jpg")
+jpeg(Fig.file, width=fig.width2,height=fig.width1,units="in", res=300)
+ggplot(affectedhosts2, aes(x=agent, y=freq, fill=agent))+geom_bar(stat="identity")+
+geom_text(aes(label = symbol), vjust = 0.2)+facet_wrap(.~hosts, scales="free", nrow=1)+ylab("proportion affected")+xlab("bark beetle species")+scale_fill_manual(values=c(rev(p2col)[2:4], grey(0.25)))+theme(legend.position="none")
+whatever <- dev.off()
+
+
 
 ```
  
@@ -1392,11 +1455,7 @@ knitr::include_graphics(here("Results/Figures/Figure-ObsExpCo-ocurrenceAgentXHos
 
 <div id="refs"></div>
 
-
-```{r, child = "appendix1.Rmd"}
-```
-
-## Supplemental figures
+## Supplement
 ### Comparison of stand structure and composition, climate, and regional bark beetle activity  
 ```{r FigStandSC,  fig.cap = "A caption", out.width = "322.56pt"}
 datBB.c <-df.sub[!df.sub$focalhost=="Any",] 
