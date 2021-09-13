@@ -413,6 +413,7 @@ datz5 <- datz5[datz5$STATUSCD.2 %in% c("Live", "Recently killed"),]
 For each live tree (>= 12.7 cm DBH), field crews record up to three damaging agents, which are defined as agents that are likely to prevent the tree from surviving >2 years, reduce the growth of the tree in the near term, or negatively affect the tree's marketable products [@burrill_forest_2017].
 
 Cause of death codes are very broad (e.g., "insect" or "disease"). Accuracy of FIA data is commonly assessed using blind checks, where two crews perform independent inventories. Agreement between mortality agent codes recorded in the two inventories is generally >80% [@anderegg_tree_2015]. Active damage is easier to identify, thus the codes for damaging agents are much more specific.
+
 ```{r determine presence of BB agents in focal hosts, eval=F}
 datz5$WBBB.l <- NA
 datz5$WBBB.d <- NA
@@ -435,7 +436,6 @@ datz5$SB.d <- ifelse(datz5$AGENTCD==10 & datz5$SPCD == PIEN, 1, 0)
 datz5$SB <- rowSums(datz5[,c("SB.d", "SB.l")], na.rm=T)
 datz5$SB[is.na(datz5$SB)==T]<-0
 ```
-
 
 #### Calculation of stand characteristics
 For each plot, we then calculated
@@ -565,249 +565,8 @@ st_geometry(df.recent) <- NULL
 write.csv(df.recent, here("Data/Processed/FIAdat-recent.csv"))
 ```
 
-#### Regional bark beetle pressure
-Additionally, given the effects of stand structure and composition on the susceptibility to bark beetle infestation are expected to be greatest in the initial stages of outbreak development [@raffa_cross-scale_2008, @hart_summer_2017], we calculated a proxy of regional bark beetle population density. To do so, we first identified all plots located within 25 km of the focal plot (hereafter *neighboring plots*). We then calculated the regional bark beetle pressure as:
-
-$BP_{regional} = BA_{infested}/BA_{host_{inventoried}} * BA_{host_{total}}$
-
-where $BP_{regional}$ is the regional beetle pressure, $BA_{infested}$ is the total basal area of infested trees within neighboring plots inventoried in the focal or preceding years, $BA_{host_{inventoried}}$ is the total basal area of host trees within neighboring plots inventoried in same year or preceding years, $BA_{host_{total}}$ is the total basal area of host trees for all neighboring plots, $n_{plots}$ is the number of neighboring plots.
-
-```{r pressure, eval=F}
-df <- read.csv(here("Data/Processed/FIAdat-df.csv"))
-df.recent <- read.csv(here("Data/Processed/FIAdat-recent.csv"))
-
-plots <- unique(df[,c("PLT_CN", "INVYR", "LAT", "LON")])
-plotspdf <- SpatialPointsDataFrame(plots[,c("LON", "LAT")], data=plots, proj4string=CRS("+init=epsg:4269"))
-
-plotspdf.t <- spTransform(plotspdf,
-CRS("+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=37.5 +lon_0=-96 +x_0=0 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m +no_defs"))
-
-# calculate distances between plots
-plot.dists <- rgeos::gDistance(plotspdf.t, byid=T)
-colnames(plot.dists) <- plotspdf$PLT_CN
-rownames(plot.dists) <- plotspdf$PLT_CN
-pressure <- data.frame(PLT_CN=plotspdf$PLT_CN, hostBA.MPB=NA, hostBA.SB=NA, hostBA.WBBB=NA, hostBA.MPB.samp=NA, hostBA.SB.samp=NA, hostBA.WBBB.samp=NA, hostBA.allBBs.samp=NA, nplots=NA, pressureMPB=NA, pressureSB=NA, pressureWBBB=NA, pressureallBBs=NA)
-
-
-for(j in 1:ncol(plot.dists)){
-  
-  # determine plots within 25 km 
-  x <- plot.dists[,j] 
-  x <- x[-j] # remove plot j 
-  x25 <- x[x<=25000]
-
-  # set inventory year for plot j
-  invyr <- plots[j, "INVYR"]
-  
-  # select plots that were inventoried before plot j
-  pre_PLT_CNs <- plots[plots$INVYR<=invyr, "PLT_CN"]
-  
-  # select plots within 25 km that were also inventoried before plot j
-  x25r <- x25[names(x25) %in% pre_PLT_CNs]
-  
-  # calculate area of host basal area within 25 km using only the most recent plot inventories 
-  if(length(x25)>=0){
-    pressure[j,  "hostBA.MPB"] <- sum(df.recent[df.recent$PLT_CN %in% names(x25), "BA.PICO"], na.rm=T) 
-    pressure[j,  "hostBA.SB"] <-sum(df.recent[df.recent$PLT_CN %in% names(x25), "BA.PIEN"], na.rm=T) 
-    pressure[j,  "hostBA.WBBB"] <- sum(df.recent[df.recent$PLT_CN %in% names(x25), "BA.ABLA"], na.rm=T) 
-    pressure[j,  "hostBA.allBBs"] <- sum(rowSums(df.recent[df.recent$PLT_CN %in% names(x25), c( "BA.PICO", "BA.PIEN", "BA.ABLA")], na.rm=T), na.rm=T) 
-  }
-  
-  # calculate regional pressure
-  if(length(x25r)>0){
-    df.x25r <- df[df$PLT_CN %in% names(x25r),]
-
-    # calculate total basal area of PICO, PIEN, and ABLA sampled for all plots within 25 km sampled in the current or previous years 
-    pressure[j,  "hostBA.MPB.samp"]  <- sum(df.x25r[, "BA.PICO"], na.rm=T) 
-    pressure[j,  "hostBA.SB.samp"] <-sum(df.x25r[, "BA.PIEN"], na.rm=T) 
-    pressure[j,  "hostBA.WBBB.samp"] <- sum(df.x25r[, "BA.ABLA"], na.rm=T) 
-    pressure[j,  "hostBA.allBBs.samp"]   <- sum(rowSums(df.x25r[, c( "BA.PICO", "BA.PIEN", "BA.ABLA")], na.rm=T), na.rm=T) 
-    
-    # calculate number of plots sampled for all plots within 25 km sampled in the current or previous years 
-    pressure[j,  "nplots"]   <- nrow(df.x25r) 
- 
-   # calculate total basal area of trees affected by MPB, SB, and WBBB sampled for all plots within 25 km sampled in the current or previous years 
-    pressure[j,  "pressureMPB"] <- sum(df.x25r[, "BA.MPB"], na.rm=T)  
-    pressure[j,  "pressureSB"] <- sum(df.x25r[, "BA.SB"], na.rm=T)   
-    pressure[j,  "pressureWBBB"] <- sum(df.x25r[, "BA.WBBB"], na.rm=T) 
-    pressure[j,  "pressureallBBs"] <- sum(df.x25r[, c("BA.MPB", "BA.SB", "BA.WBBB")], na.rm=T) 
-  }
-  
-}
-
-pressure$Rpressure.MPB <- (pressure$pressureMPB/pressure$hostBA.MPB.samp) * pressure$hostBA.MPB 
-pressure$Rpressure.SB <- (pressure$pressureSB/pressure$hostBA.SB.samp) *pressure$hostBA.SB
-pressure$Rpressure.WBBB <- (pressure$pressureWBBB/pressure$hostBA.WBBB.samp) *pressure$hostBA.WBBB 
-pressure$Rpressure.allBBs <- ( pressure$pressureallBBs/pressure$hostBA.allBBs.samp) * pressure$hostBA.allBBs
-pressure[is.na(pressure)==T]<-0
-
-
-pressure <- pressure[pressure$PLT_CN %in% df.recent$PLT_CN,]
-write.csv(pressure, paste0(here("Data/Processed/FIAdat-pressure.csv")),row.names=F)
-```
-
-#### Climate data
-Finally, because bark beetle developmental rates and overwintering mortality are sensitive to summer and winter temperatures [@miller_cold-hardiness_1987, @bentz_temperature-dependent_1991, @hansen_temperature-based_2001], respectively, we acquired the average maximum temperatures for July (JulTMAX) and average minimum temperatures for December (DecTMIN). Because prior research shows associations between precipitation and outbreak [@hebertson_climate_2008; @chapman_spatiotemporal_2012], we also obtained monthly total precipitation and calculated the total water year (i.e. September to October) precipitation (WYPPT). As indices of host stress due to drought, we used the Standardized Evapotranspiration Precipitation Index (SPEI). SPEI is a multiscalar index that uses precipitation and temperature data in a simple Thornthwaite water balance model [@thornthwaite_approach_1948] to quantify drought [vicente-serrano_multiscalar_2009,]. Specifically we obtained SPEI calculated over the June–July period (JJSPEI) and a 5-yr period, which spanned September to the October five years prior (i.e., five water years; WYSPEI) [@hart_summer_2017]. SPEI data were produced from PRISM data and downloaded from the West Wide Drought Tracker [@abatzoglou_west_2017]. For each plot, we calculated the 1982-2017 climatic normals. For each plot we assigned the climate normal value of the 4 x 4 km pixel underlying each point. 
-
-```{r download and process climate data, eval=F}
-df.recent <- read.csv(here("Data/Processed/FIAdat-recent.csv"))
-plots <- unique(df.recent[,c("PLT_CN", "LAT", "LON", "INVYR")])
-plotspdf <- SpatialPointsDataFrame(plots[,c("LON", "LAT")], data=plots, proj4string=CRS("+init=epsg:4269"))
-
-# PRISM
-dir.create(here("Data/Spatial/PRISM/"), showWarnings = FALSE)
-
-## Normals
-dir.create(here("Data/Spatial/PRISM/Normals/"), showWarnings = FALSE)
-options(prism.path=here("Data/Spatial/PRISM/Normals/"))
-get_prism_normals("ppt", resolution="4km", annual = TRUE)
-get_prism_normals("tmax", resolution="4km", mon=7, annual = FALSE)
-get_prism_normals("tmin", resolution="4km", mon=12, annual = FALSE)
-
-normals <- brick(apply(as.data.frame(pd_to_file(prism_archive_ls())), FUN=raster, MARGIN=1))
-normals.df <- raster::extract(normals, plotspdf, method="simple", df=T)
-normals.df$PLT_CN <- plots$PLT_CN
-colnames(normals.df) <- c("nPPT12", "nTMAX1.7", "nTMIN1.12", "PLT_CN")
-write.csv(normals.df, here("Data/Processed/Normals.csv"), row.names = F)
-
-## Jul MAX Temperature
-dir.create(here("Data/Spatial/PRISM/TMAX1_7/"), showWarnings = FALSE)
-options(prism.path=here("Data/Spatial/PRISM/TMAX1_7/"))
-tmax <- get_prism_monthlys(type="tmax", mon=7, years=1981:2020)
-TMAX1.7 <- brick(apply(as.data.frame(pd_to_file(prism_archive_ls())), FUN=raster, MARGIN=1))
-
-options(prism.path=here("Data/Spatial/PRISM/Normals/"))
-nTMAX1.7 <- raster(pd_to_file(prism_archive_ls()[2]))
-TMAX1.7.anom <- (TMAX1.7+100) - (nTMAX1.7+100)
-
-TMAX1.7.df <- raster::extract(TMAX1.7, plotspdf, method="simple", df=T)
-TMAX1.7.df$PLT_CN <- plots$PLT_CN
-write.csv(TMAX1.7.df, here("Data/Processed/TMAX1-7.csv"), row.names = F)
-
-TMAX1.7.anom.df <- raster::extract(TMAX1.7.anom, plotspdf, method="simple", df=T)
-TMAX1.7.anom.df$PLT_CN <- plots$PLT_CN
-write.csv(TMAX1.7.anom.df, here("Data/Processed/TMAX1-7anom.csv"), row.names = F)
-
-## Dec MIN Temperature
-dir.create(here("Data/Spatial/PRISM/TMIN1_12/"), showWarnings = FALSE)
-options(prism.path=here("Data/Spatial/PRISM/TMIN1_12/"))
-TMIN12 <- get_prism_monthlys(type="tmin", mon=12, years=1981:2020)
-TMIN1.12 <- brick(apply(as.data.frame(pd_to_file(prism_archive_ls())), FUN=raster, MARGIN=1))
-
-options(prism.path=here("Data/Spatial/PRISM/Normals/"))
-nTMIN1.12 <- raster(pd_to_file(prism_archive_ls()[3]))
-TMIN1.12.anom <- (TMIN1.12+100) - (nTMIN1.12+100)
-
-tmin1.12.df <- raster::extract(TMIN1.12, plotspdf, method="simple", df=T)
-tmin1.12.df$PLT_CN <- plots$PLT_CN
-write.csv(tmin1.12.df, here("Data/Processed/TMIN1-12.csv"), row.names = F)
-
-tmin1.12.anom.df <- raster::extract(TMIN1.12.anom, plotspdf, method="simple", df=T)
-tmin1.12.anom.df$PLT_CN <- plots$PLT_CN
-write.csv(tmin1.12.anom.df, here("Data/Processed/TMIN1-12anom.csv"), row.names = F)
-
-## Annual PPT
-dir.create(here("Data/Spatial/PRISM/PPT12/"), showWarnings = FALSE)
-options(prism.path=here("Data/Spatial/PRISM/PPT12/"))
-get_prism_annual(type="ppt", years=1981:2020)
-ppt <- brick(apply(as.data.frame(pd_to_file(prism_archive_ls())), FUN=raster, MARGIN=1))
-
-options(prism.path=here("Data/Spatial/PRISM/Normals/"))
-nppt <- raster(pd_to_file(prism_archive_ls()[1]))
-pptanom <- ppt - nppt
-
-ppt.df <- raster::extract(ppt, plotspdf, method="simple", df=T)
-ppt.df$PLT_CN <- plots$PLT_CN
-write.csv(ppt.df, here("Data/Processed/PPT12.csv"), row.names = F)
-
-pptanom.df <- raster::extract(pptanom, plotspdf, method="simple", df=T)
-pptanom.df$PLT_CN <- plots$PLT_CN
-write.csv(pptanom.df, here("Data/Processed/PPT12anom.csv"), row.names = F)
-
-## JUN-JUL SPEI
-dir.create(here("Data/Spatial/PRISM/SPEI2_7"), showWarnings = FALSE)
-temp <- here("/Data/Spatial/PRISM/spei2_7_PRISM.nc")
-download.file("http://www.wrcc.dri.edu/wwdt/data/PRISM/spei2/spei2_7_PRISM.nc", temp)
-
-spei2 <- brick(here("Data/Spatial/PRISM/SPEI2_7/spei2_7_PRISM.nc"))
-spei2.df <-raster:::extract(spei2, plotspdf, method="simple", df=T)[,-1]
-spei2.df$PLT_CN <- plots$PLT_CN
-write.csv(spei2.df,paste0(here("Data/Processed"),"SPEI2.csv"), row.names = F)
-
-## 5 WATER YEAR SPEI
-dir.create(here("Data/Spatial/PRISM/SPEI60_9"), showWarnings = FALSE)
-temp <- here("Data/Spatial/PRISM/SPEI60_9/spei60_9_PRISM.nc")
-download.file("http://www.wrcc.dri.edu/wwdt/data/PRISM/spei60/spei60_9_PRISM.nc", temp)
-
-spei60 <- brick( here("Data/Spatial/PRISM/SPEI60_9/spei60_9_PRISM.nc"))
-spei60.df <-raster:::extract(spei60, plotspdf, method="simple", df=T)[,-1]
-spei60.df$PLT_CN <- plots$PLT_CN
-write.csv(spei60.df,paste0(here("Data/Processed/"),"SPEI60.csv"), row.names = F)
-
-spei60.df <- read.csv(here("Data/Processed/SPEI60.csv"))
-spei2.df <- read.csv(here("Data/Processed/SPEI2.csv"))
-
-ppt.df <- read.csv( here("Data/Processed/PPT12.csv"))
-pptanom.df <- read.csv( here("Data/Processed/PPT12anom.csv"))
-
-tmin1.12.df <- read.csv(here("Data/Processed/TMIN1-12.csv"))
-tmin1.12.anom.df <- read.csv(here("Data/Processed/TMIN1-12anom.csv"))
-
-tmax1.7.df <- read.csv(here("Data/Processed/TMAX1-7.csv"))
-tmax1.7.anom.df <- read.csv(here("Data/Processed/TMAX1-7anom.csv"))
-
-
-climatedata <- plots  
-for(j in 1:nrow(climatedata)){
-  INVYR <- climatedata[j, "INVYR"]
-  end.yr <- INVYR 
-  start.yr <- INVYR-9
-  
-  spei2.ts <- ts(t(spei2.df[j,-1*ncol(spei2.df)]),start=1895, freq=1)
-  spei2.tsw <- window(spei2.ts, end=end.yr, start=start.yr)
-  climatedata[j, "JJSPEI"] <- mean(spei2.tsw , na.rm=T)
-
-  spei60.ts <- ts(t(spei60.df[j,-1*ncol(spei60.df)]),start=1895, freq=1)
-  spei60.tsw <- window(spei60.ts, end=end.yr, start=start.yr)
-  climatedata[j, "WYSPEI"] <- mean(spei60.tsw , na.rm=T)
-
- tmin1.12.ts <- ts(t(tmin1.12.df[j,-1*ncol(tmin1.12.df )]),start=1981, freq=1)
-  tmin1.12.tsw <- window(tmin1.12.ts, end=end.yr, start=start.yr)
-  climatedata[j, "DecTMIN"] <- mean(tmin1.12.tsw[,1], na.rm=T)
-  
-  tmin1.12a.ts <- ts(t(tmin1.12.anom.df[j,-1*ncol(tmin1.12.anom.df )]),start=1981, freq=1)
-  tmin1.12a.tsw <- window(tmin1.12a.ts, end=end.yr, start=start.yr)
-  climatedata[j, "DecTMINa"] <- mean(tmin1.12a.tsw[,1], na.rm=T)
-
-   tmax1.7.ts <- ts(t(tmax1.7.df[j,-1*ncol(tmax1.7.df )]),start=1981, freq=1)
-  tmax1.7.tsw <- window(tmax1.7.ts, end=end.yr, start=start.yr)
-  climatedata[j, "JulTMAX"] <- mean(tmax1.7.tsw[,1], na.rm=T)
-  
-tmax1.7a.ts <- ts(t(tmax1.7.anom.df[j,-1*ncol(tmax1.7.anom.df )]),start=1981, freq=1)
-
-  tmax1.7a.tsw <- window(tmax1.7a.ts, end=end.yr, start=start.yr)
-  climatedata[j, "JulTMAXa"] <- mean(tmax1.7a.tsw[,1], na.rm=T)
-  
-  ppt.ts <- ts(t(ppt.df [j,-1*ncol(ppt.df )]),start=1981, freq=1)
-  ppt.tsw <- window( ppt.ts, end=end.yr, start=start.yr)
-  climatedata[j, "PPT"] <- mean(ppt.tsw[,1], na.rm=T)
-  
-  ppta.ts <- ts(t(pptanom.df [j,-1*ncol(pptanom.df )]),start=1981, freq=1)
- ppta.tsw <- window(ppta.ts, end=end.yr, start=start.yr)
-  climatedata[j, "PPTa"] <- mean(ppta.tsw[,1], na.rm=T)
-}
-
-write.csv(climatedata, here("Data/Processed/climatedata.csv"), row.names = F)
-```
-
 ```{r merge data, eval=F}
 df.recent <- read.csv(here("Data/Processed/FIAdat-recent.csv"))
-pressure <- read.csv(here("Data/Processed/FIAdat-pressure.csv"))
-climatedata <- read.csv(here("Data/Processed/climatedata.csv"))
- 
-df <- merge(df.recent, pressure, by="PLT_CN", all=T)
-df <- merge(df, climatedata[, -2:-4], by="PLT_CN", all=T)
-
 write.csv(df, here("Data/Processed/FIAdat-df-merge.csv"), row.names=F)
 ```
 
@@ -828,7 +587,7 @@ formatp <- function(d, host="PIEN", agent="SB"){
   
   df.p$BAD.host <- df.p$BA.host/df.p$BA.total
   df.p$TPHD.host <- df.p$TPH.host/df.p$TPH.total
-  df.p$pressure.BB <- df.p[,paste0("pressure", agent)]
+  #df.p$pressure.BB <- df.p[,paste0("pressure", agent)]
   
   return(df.p)
 }
@@ -855,7 +614,7 @@ write.csv(df, here("Data/Processed/FIAdat-df-merge-re.csv"),row.names=F)
 
 ## Analyses
 
-# Descriptive analyses
+### Descriptive analyses
 ```{r import processed data}
 df <- read.csv( here("Data/Processed/FIAdat-df-merge-re.csv"))
 df$nhostsF <-factor(df$nhosts, levels=1:3, labels=c("one", "two", "three"), ordered=T)
@@ -989,162 +748,30 @@ p1
 whatever <- dev.off()
 ```
 
-### Model occurrence
-
-```{r select plots to control for sampling effort, eval=T}
-#df.sub <- df[df$nplots>5, ]
-df.sub <- df
-## remove plots with other hosts
-#df.sub  <- df.sub [df.sub$BA.Otherhosts==0,]
-#nrow(datBB.c)
-df.sub  <- df.sub [df.sub$BA.Allhosts/df.sub$BA.total>0.75,]
-
-# select plots where focal agent is all 
-
-df.sub <- df.sub[df.sub$focalagent=="Any", ]
-```
-
-```{r select plots with large & abundant hosts, eval=T}
-threshold <- 0.10
-PICO.BA.threshold <- quantile(df.sub[df.sub$agentMPB=="MPB", ]$BA.PICO, threshold)
-PIEN.BA.threshold <- quantile(df.sub[df.sub$agentSB=="SB", ]$BA.PIEN, threshold)
-ABLA.BA.threshold <- quantile(df.sub[df.sub$agentWBBB=="WBBB", ]$BA.ABLA, threshold)
-
-PICO.QMD.threshold <- quantile(df.sub[df.sub$agentMPB=="MPB", ]$QMD.PICO, threshold)
-PIEN.QMD.threshold <- quantile(df.sub[df.sub$agentSB=="SB", ]$QMD.PIEN, threshold)
-ABLA.QMD.threshold <- quantile(df.sub[df.sub$agentWBBB=="WBBB", ]$QMD.ABLA, threshold)
-
-
-df.sub$hosts2.PICO <- "absent"
-df.sub[df.sub$QMD.PICO >PICO.QMD.threshold & df.sub$BA.PICO >PICO.BA.threshold, "hosts2.PICO"] <- "PICO"
-df.sub$hosts2.PIEN <- "absent"
-df.sub[df.sub$QMD.PIEN >PIEN.QMD.threshold & df.sub$BA.PIEN >PIEN.BA.threshold, "hosts2.PIEN"] <- "PIEN"
-df.sub$hosts2.ABLA<- "absent"
-df.sub[df.sub$QMD.ABLA >ABLA.QMD.threshold & df.sub$BA.ABLA >ABLA.BA.threshold, "hosts2.ABLA"] <- "ABLA"
-
-df.sub$hosts2<- NA
-df.sub$hosts2<- do.call(paste, c(df.sub[c("hosts2.PICO", "hosts2.PIEN", "hosts2.ABLA")],sep="-"))
-df.sub <- df.sub[!df.sub$hosts2 =='absent-absent-absent',]
-df.sub$hosts2 <- factor(df.sub$hosts2, levels=c('PICO-absent-absent','absent-absent-ABLA', 'absent-PIEN-absent', 'PICO-PIEN-absent',   'PICO-absent-ABLA', 'absent-PIEN-ABLA', 'PICO-PIEN-ABLA'), labels= c('PICO', 'ABLA', 'PIEN', 'PICO & PIEN', 'PICO & ABLA', 'PIEN & ABLA', 'PICO, PIEN, & ABLA'), ordered=TRUE)
-df.sub$nhosts2 <- as.numeric(factor(df.sub$hosts2, levels=c('PICO', 'ABLA', 'PIEN', 'PICO & PIEN', 'PICO & ABLA', 'PIEN & ABLA', 'PICO, PIEN, & ABLA'), labels=c(1, 1, 1, 2,2,2, 3)))
-
-
-### Number of hosts
-
-#### Any hosts
-affectednhosts2 <- df.sub %>% group_by(nhosts2, affected) %>% summarise(n = n())%>% mutate(freq = prop.table(n))
-affectednhosts2 <- affectednhosts2[affectednhosts2$affected=="affected",]
-colnames(affectednhosts2) <- c("nhosts", "agent", "n", "freq")
-affectednhosts2$agent <- "Any"
-
-#### MPB
-MPBnhosts2 <- df.sub %>% group_by(nhosts2, agentMPB) %>% summarise(n = n())%>% mutate(freq = prop.table(n))
-MPBnhosts2 <- MPBnhosts2[MPBnhosts2$agentMPB=="MPB",]
-colnames(MPBnhosts2) <- c("nhosts", "agent", "n", "freq")
-
-#### SB
-SBnhosts2 <- df.focal2 %>% group_by(nhosts2, agentSB) %>% summarise(n = n())%>% mutate(freq = prop.table(n))
-SBnhosts2 <- SBnhosts2[SBnhosts2$agentSB=="SB",]
-colnames(SBnhosts2) <- c("nhosts", "agent", "n", "freq")
-
-#### WBBB
-WBBBnhosts2 <- df.focal2 %>% group_by(nhosts2, agentWBBB) %>% summarise(n = n())%>% mutate(freq = prop.table(n))
-WBBBnhosts2 <- WBBBnhosts2[WBBBnhosts2$agentWBBB=="WBBB",]
-colnames(WBBBnhosts2) <- c("nhosts", "agent", "n", "freq")
-
-#### Merge
-affectednhosts2 <- rbind(as.data.frame(affectednhosts2),as.data.frame(MPBnhosts2))
-affectednhosts2 <- rbind(affectednhosts2, as.data.frame(SBnhosts2))
-affectednhosts2 <- rbind(affectednhosts2, as.data.frame(WBBBnhosts2))
-
-### Host identity
-#### Any hosts
-affectedhosts2 <- df.sub %>% group_by(hosts2, affected) %>% summarise(n = n())%>% mutate(freq = prop.table(n))
-affectedhosts2 <- affectedhosts2[affectedhosts2$affected=="affected",]
-colnames(affectedhosts2) <- c("hosts", "agent", "n", "freq")
-affectedhosts2$agent <- "Any"
-
-#### MPB
-MPBhosts2 <- df.sub %>% group_by(hosts2, agentMPB) %>% summarise(n = n())%>% mutate(freq = prop.table(n))
-MPBhosts2 <- MPBhosts2[MPBhosts2$agentMPB=="MPB",]
-colnames(MPBhosts2) <- c("hosts", "agent", "n", "freq")
-
-#### SB
-SBhosts2 <- df.sub  %>% group_by(hosts2, agentSB) %>% summarise(n = n())%>% mutate(freq = prop.table(n))
-SBhosts2 <- SBhosts2[SBhosts2$agentSB=="SB",]
-colnames(SBhosts2) <- c("hosts", "agent", "n", "freq")
-
-#### WBBB
-WBBBhosts2 <-df.sub  %>% group_by(hosts2, agentWBBB) %>% summarise(n = n())%>% mutate(freq = prop.table(n))
-WBBBhosts2 <- WBBBhosts2[WBBBhosts2$agentWBBB=="WBBB",]
-colnames(WBBBhosts2) <- c("hosts", "agent", "n", "freq")
-
-#### Merge
-affectedhosts2 <- rbind(as.data.frame(affectedhosts2),as.data.frame(MPBhosts2))
-affectedhosts2 <- rbind(affectedhosts2, as.data.frame(SBhosts2))
-affectedhosts2 <- rbind(affectedhosts2, as.data.frame(WBBBhosts2))
-affectedhosts2$hosts <- factor(affectedhosts2$hosts, levels=c("PICO", "PIEN", "ABLA", "PICO & PIEN", "PICO & ABLA", "PIEN & ABLA", "PICO, PIEN, & ABLA"), ordered=T)
-
-
-### test for significant differences
-affectedhosts3 <- as.data.frame(table(df.sub$hosts2))
-colnames(affectedhosts3) <- c("hosts", "N")
-
-affectedhosts3 <- merge(affectedhosts3, affectedhosts2[affectedhosts2$agent=="Any", c("hosts", "n")], by="hosts", all=T)
-colnames (affectedhosts3 ) <- c("hosts", "n", "Any")
-affectedhosts3 <- merge(affectedhosts3, affectedhosts2[affectedhosts2$agent=="MPB", c("hosts", "n")], by="hosts", all=T)
-colnames (affectedhosts3 ) <- c("hosts", "n", "Any", "MPB")
-affectedhosts3 <- merge(affectedhosts3, affectedhosts2[affectedhosts2$agent=="SB", c("hosts", "n")], by="hosts", all=T)
-colnames (affectedhosts3 ) <- c("hosts", "n", "Any", "MPB", "SB")
-affectedhosts3 <- merge(affectedhosts3, affectedhosts2[affectedhosts2$agent=="WBBB", c("hosts", "n")], by="hosts", all=T)
-colnames (affectedhosts3 ) <- c("hosts", "n", "Any", "MPB", "SB", "WBBB")
-
-
-
-affectedhosts3$label <- paste0(do.call(paste, c(affectedhosts3[c("hosts", "n")],sep="\n(n=")), ")")
-
-
-affectedhosts2$p.value <- NA
-affectedhosts2$statistic <- NA
-for(j in unique(affectedhosts2$hosts)){
-  affectedhosts2j <- affectedhosts2[affectedhosts2$hosts==j, ]
-  affectedhosts3j <- affectedhosts3[affectedhosts3$hosts==j,]
-  for(k in unique(affectedhosts2j$agent)[!unique(affectedhosts2j$agent)=="Any"]){
-    
-    test <- prop.test(x=do.call(c,affectedhosts3j[, c("Any", k)]), n=rep(affectedhosts3j[, "n"],2), alternative="greater")
-  affectedhosts2[affectedhosts2$hosts==j & affectedhosts2$agent==k, "p.value"] <- round(test$p.value,3)
-    affectedhosts2[affectedhosts2$hosts==j & affectedhosts2$agent==k, "statistic"] <- test$statistic
-  }
-}
-affectedhosts2$symbol <- ifelse( affectedhosts2$p.value<0.05, "*", "")
-affectedhosts2$agent <- factor(affectedhosts2$agent, levels=c("MPB", "SB", "WBBB", "Any"), ordered=T)
-
-affectedhosts2 <- affectedhosts2[affectedhosts2$hosts %in% c("PICO & PIEN", "PICO & ABLA", "PIEN & ABLA", "PICO, PIEN, & ABLA"), ]
-affectedhosts2$hosts <- factor(affectedhosts2$hosts, levels=c("PICO & PIEN", "PICO & ABLA", "PIEN & ABLA", "PICO, PIEN, & ABLA"), labels=affectedhosts3$label[c(4,3,7,5)], ordered=T)
-
-Fig.file <- here("Results/Figures/Figure-OccurenceGivenSuitableStands.jpg")
-jpeg(Fig.file, width=fig.width2,height=fig.width1,units="in", res=300)
-ggplot(affectedhosts2, aes(x=agent, y=freq, fill=agent))+geom_bar(stat="identity")+
-geom_text(aes(label = symbol), vjust = 0.2)+facet_wrap(.~hosts, scales="free", nrow=1)+ylab("proportion affected")+xlab("bark beetle species")+scale_fill_manual(values=c(rev(p2col)[2:4], grey(0.25)))+theme(legend.position="none")
+```{r}
+Fig.file <- here("Results/Figures/Figure-AgentbyHostcombo.jpg")
+df$hostsFPshort<- df$hostsFPlong
+df$hostsFPshort <- factor(df$hostsFPlong, levels=levels(df$hostsFPlong), labels=c("PICO", "PIEN", "ABLA", "PICO\n&\nPIEN", "PICO\n&\nABLA", "PIEN\n&\nABLA", "PICO,\nPIEN,\n&\nABLA"))
+df$agentsFplongrev <- df$agentsFplong
+df$agentsFplongrev <- factor(df$agentsFplongrev, levels=rev(levels( df$agentsFplong)))
+jpeg(Fig.file, width=fig.width2,height=fig.width1.5,units="in", res=300)
+ggplot(df[df$focalhost=="Any",], aes(x=hostsFPshort,fill=agentsFplongrev))+geom_bar()+theme(legend.title = element_blank())+xlab("hosts")+scale_fill_manual(values=p2col)
 whatever <- dev.off()
-
-
-
 ```
- 
 
 
+### Under what stand conditions are bark beetle outbreaks likely?
 ```{r, eval=T}
-datBB.c <- df.sub[df.sub$focalhost=="Any",]
-splitit <- initial_split(df.sub, prop=0.5)
+datBB.c <- df[df$focalhost=="Any",]
+splitit <- initial_split(datBB.c, prop=0.5)
 datz.train <- training(splitit)
 datz.test <- testing(splitit)
 datz.train.cv <- vfold_cv(datz.train, v=10)
 ```
 
-```{r fit MPB RF model, eval=T}
+#### MPB
+```{r fit MPB RF model, eval=F}
 response <- "agentMPB"
-#vars <- c("BA.PICO", "QMD.PICO", "propBA.PICO", "pressureMPB", "hostBA.MPB", "PPTa", "JJSPEI", "WYSPEI", "JulTMAXa", "DecTMINa")
 vars <- c("BA.PICO", "QMD.PICO", "propBA.PICO")
 
 form <- paste(response, "~", paste(vars, collapse = " + "))
@@ -1153,50 +780,50 @@ wts <- 1/(table(datBB.c[,response])/ max(table(datBB.c[,response])))
 wts <- wts/sum(wts)
 
 # set formula
-BBoccurrence_recipe <- recipe(formula(paste(response, "~", paste(vars, collapse = " + "))), datz.train) %>%
-step_corr(all_predictors())%>% prep()
+BBoccurrence_recipe <- recipe(formula(paste(response, "~", paste(vars, collapse = " + "))), datz.train) %>%step_corr(all_predictors())%>% prep()
 
 # set model
-rf_model <- rand_forest() %>% set_args(mtry = tune(), trees=tune(), min_n=tune(), class.weights=wts) %>% set_engine("ranger", importance = "permutation", probability=T) %>% set_mode("classification") 
+rf_model <- rand_forest() %>% set_args(mtry = tune(), trees=tune(), min_n=tune(), sample.fraction=wts) %>% set_engine("ranger", importance = "permutation", probability=T) %>% set_mode("classification") 
 
 # set the workflow
 rf_workflow <- workflow() %>% add_recipe(BBoccurrence_recipe) %>% add_model(rf_model)
 
 # tune model
-tgrid <- expand.grid(mtry = 3, trees = c(100,500), min_n=c(50,100,500))
+tgrid <- expand.grid(mtry = c(1,3), trees = c(100,500), min_n=c(50,100,500))
 rf_tune_results <- rf_workflow %>% tune_grid(resamples = datz.train.cv,  grid = tgrid, metrics = metric_set(roc_auc, accuracy))
 
 tuneres <- rf_tune_results %>% collect_metrics()
 
 param_best<- rf_tune_results %>% select_best(metric = "roc_auc")
 
-
 # Use backward selection to identify important variables
-#dfo.vsurf <- VSURF::VSURF(datz.train[,vars], factor(datz.train[,response]), RFimplem="ranger", parallel=T, mtry=param_best$mtry, ntree=param_best$trees, min.node.size=param_best$min_n)
-#vars.final <- unique(c(vars[dfo.vsurf$varselect.pred]))
-vars.final <- vars
+dfo.vsurf <- VSURF::VSURF(datz.train[,vars], factor(datz.train[,response]), RFimplem="ranger", parallel=T, mtry=param_best$mtry, ntree=param_best$trees, min.node.size=param_best$min_n)
+registerDoSEQ()
+vars.final <- unique(c(vars[dfo.vsurf$varselect.pred]))
   
 BBoccurrence_recipe_final <- recipe(formula(paste(response, "~", paste(vars.final, collapse = " + "))), data=datBB.c)
   
-rf_model_final <- rand_forest() %>% set_args(mtry = param_best$mtry, trees=param_best$trees, min_n=param_best$min_n, splitrule="gini", probability=T) %>% set_engine("ranger",  class.weights=wts,  importance = "permutation", probability=T) %>% set_mode("classification") 
+rf_model_final <- rand_forest() %>% set_args(mtry = param_best$mtry, trees=param_best$trees, min_n=param_best$min_n, splitrule="gini", probability=T) %>% set_engine("ranger",  sample.fraction=wts,  importance = "permutation", probability=T) %>% set_mode("classification") 
   
 rf_workflow_final <- workflow() %>% add_recipe(BBoccurrence_recipe_final) %>% add_model(rf_model_final)
-rf_workflow_final_fit<- rf_workflow_final %>% last_fit(splitit) #emulates the process where, after determining the best model, the final fit on the entire training set is needed and is then evaluated on the test set.
-
+rf_workflow_final_fit<- rf_workflow_final %>% last_fit(splitit) #emulates the process where, after determining the best model, the final fit on the entire training set is needed and is then evaluated on the test set. 
 test_performance <- rf_workflow_final_fit %>% collect_metrics()
 write.csv(test_performance, here("Results/RF-testperformance-MPB-occurrence.csv"), row.names=F)
   
-# generate predictions from the training dataset
+# generate a confusion matrix for test set
 test_predictions <- rf_workflow_final_fit %>% collect_predictions()
-write.csv(test_predictions , here("Results/RF-pred-MPB-occurrence.csv"), row.names=F)
-
-# generate a confusion matrix
 confusion <- test_predictions %>% conf_mat(response,estimate = .pred_class)
 write.csv(confusion$table, here("Results/RF-confusiontable-MPB-occurrence.csv"), row.names=F)
 
 # variable importance
 final_model <- fit(rf_workflow_final, data=datz.train)
 ranger_obj <- pull_workflow_fit(final_model)$fit
+
+# generate predictions for entire dataset
+x <- datBB.c$PLT_CN
+x <- cbind(x, predict(ranger_obj, datBB.c)$predictions[,2])
+colnames(x) <- c("PLT_CN", "MPBpred")
+write.csv(x, here("Results/RF-pred-MPB-occurrence.csv"), row.names=F)
 
 x <- as.data.frame(ranger_obj$variable.importance)
 x$var <- row.names(x)
@@ -1208,17 +835,20 @@ write.csv(x, here("Results/RF-vimp-MPB-occurrence.csv"), row.names=F)
 # partial dependence
 pd <- NULL
 for(z in vars.final){
-  pdz <- partial(ranger_obj, train=datz.train, pred.var=z)
+  pdz <- partial(ranger_obj, train=datz.train, pred.var=z, which.class="MPB")
   pdz$var <- z
-  colnames(pdz) <- c("value","yhat","var", which.class="MPB")
+  colnames(pdz) <- c("value","yhat","var")
   pd <- rbind(pd, pdz)
 }
 write.csv(pd,  here("Results/RF-partialdependence-MPB-occurrence.csv"), row.names=F)
+
+pdz <- partial(ranger_obj, train=datz.train, pred.var=c("QMD.PICO", "BA.PICO"), which.class="MPB")
+
 ```
 
-```{r fit SB RF model, eval=T}
+#### SB
+```{r fit SB RF model, eval=F}
 response <- "agentSB"
-#vars <- c("BA.PIEN", "QMD.PIEN", "propBA.PIEN", "pressureSB", "hostBA.SB", "PPTa", "JJSPEI", "WYSPEI", "JulTMAXa", "DecTMINa")
 vars <- c("BA.PIEN", "QMD.PIEN", "propBA.PIEN")
 
 form <- paste(response, "~", paste(vars, collapse = " + "))
@@ -1230,19 +860,18 @@ wts <- wts/sum(wts)
 BBoccurrence_recipe <- recipe(formula(paste(response, "~", paste(vars, collapse = " + "))), datz.train) %>%step_corr(all_predictors())%>% prep()
 
 # set model
-rf_model <- rand_forest() %>% set_args(mtry = tune(), trees=tune(), min_n=tune(), class.weights=wts) %>% set_engine("ranger", importance = "permutation", probability=T) %>% set_mode("classification") 
+rf_model <- rand_forest() %>% set_args(mtry = tune(), trees=tune(), min_n=tune(), sample.fraction=wts) %>% set_engine("ranger", importance = "permutation", probability=T) %>% set_mode("classification") 
 
 # set the workflow
 rf_workflow <- workflow() %>% add_recipe(BBoccurrence_recipe) %>% add_model(rf_model)
 
 # tune model
-tgrid <- expand.grid(mtry = 3, trees = c(100,500), min_n=c(50,100,500))
-rf_tune_results <- rf_workflow %>% tune_grid(resamples = datz.train.cv,  grid = tgrid, metrics = metric_set(roc_auc, accuracy))
+tgrid <- expand.grid(mtry = c(1,3), trees = c(100,500), min_n=c(50,100,500))
+rf_tune_results <- rf_workflow %>% tune_grid(resamples = datz.train.cv,  grid = tgrid, metrics = metric_set( accuracy))
 
 tuneres <- rf_tune_results %>% collect_metrics()
 
 param_best<- rf_tune_results %>% select_best(metric = "roc_auc")
-
 
 # Use backward selection to identify important variables
 dfo.vsurf <- VSURF::VSURF(datz.train[,vars], factor(datz.train[,response]), RFimplem="ranger", parallel=T, mtry=param_best$mtry, ntree=param_best$trees, min.node.size=param_best$min_n)
@@ -1251,21 +880,27 @@ vars.final <- unique(c(vars[dfo.vsurf$varselect.pred]))
   
 BBoccurrence_recipe_final <- recipe(formula(paste(response, "~", paste(vars.final, collapse = " + "))), data=datBB.c)
   
-rf_model_final <- rand_forest() %>% set_args(mtry = param_best$mtry, trees=param_best$trees, min_n=param_best$min_n, splitrule="gini", probability=T) %>% set_engine("ranger",  class.weights=wts,  importance = "permutation", probability=T) %>% set_mode("classification") 
+rf_model_final <- rand_forest() %>% set_args(mtry = param_best$mtry, trees=param_best$trees, min_n=param_best$min_n, splitrule="gini", probability=T) %>% set_engine("ranger",  sample.fraction=wts,  importance = "permutation", probability=T) %>% set_mode("classification") 
   
 rf_workflow_final <- workflow() %>% add_recipe(BBoccurrence_recipe_final) %>% add_model(rf_model_final)
 rf_workflow_final_fit<- rf_workflow_final %>% last_fit(splitit) #emulates the process where, after determining the best model, the final fit on the entire training set is needed and is then evaluated on the test set.
 
-test_performance <- rf_workflow_final_fit %>% collect_metrics()
-write.csv(test_performance, here("Results/RF-testperformance-SB-occurrence.csv"), row.names=F)
   
-# generate predictions from the training dataset
+# generate a confusion matrix for test set
 test_predictions <- rf_workflow_final_fit %>% collect_predictions()
-write.csv(test_predictions , here("Results/RF-pred-SB-occurrence.csv"), row.names=F)
-
-# generate a confusion matrix
 confusion <- test_predictions %>% conf_mat(response,estimate = .pred_class)
 write.csv(confusion$table, here("Results/RF-confusiontable-SB-occurrence.csv"), row.names=F)
+
+# variable importance
+final_model <- fit(rf_workflow_final, data=datz.train)
+ranger_obj <- pull_workflow_fit(final_model)$fit
+
+# generate predictions for entire dataset
+x <- datBB.c$PLT_CN
+x <- cbind(x, predict(ranger_obj, datBB.c)$predictions[,2])
+colnames(x) <- c("PLT_CN", "SBpred")
+write.csv(x, here("Results/RF-pred-SB-occurrence.csv"), row.names=F)
+
 
 # variable importance
 final_model <- fit(rf_workflow_final, data=datz.train)
@@ -1281,17 +916,17 @@ write.csv(x, here("Results/RF-vimp-SB-occurrence.csv"), row.names=F)
 # partial dependence
 pd <- NULL
 for(z in vars.final){
-  pdz <- partial(ranger_obj, train=datz.train, pred.var=z)
+  pdz <- partial(ranger_obj, train=datz.train, pred.var=z, which.class="SB")
   pdz$var <- z
-  colnames(pdz) <- c("value","yhat","var", which.class="SB")
+  colnames(pdz) <- c("value","yhat","var")
   pd <- rbind(pd, pdz)
 }
 write.csv(pd,  here("Results/RF-partialdependence-SB-occurrence.csv"), row.names=F)
 ```
 
-```{r fit WBBB RF model, eval=T}
+#### WBBB
+```{r fit WBBB RF model, eval=F}
 response <- "agentWBBB"
-vars <- c("BA.ABLA", "QMD.ABLA", "propBA.ABLA", "pressureWBBB", "hostBA.WBBB", "PPTa", "JJSPEI", "WYSPEI", "JulTMAXa", "DecTMINa")
 vars <- c("BA.ABLA", "QMD.ABLA", "propBA.ABLA")
 
 form <- paste(response, "~", paste(vars, collapse = " + "))
@@ -1304,44 +939,50 @@ BBoccurrence_recipe <- recipe(formula(paste(response, "~", paste(vars, collapse 
 step_corr(all_predictors())%>% prep()
 
 # set model
-rf_model <- rand_forest() %>% set_args(mtry = tune(), trees=tune(), min_n=tune(), class.weights=wts) %>% set_engine("ranger", importance = "permutation", probability=T) %>% set_mode("classification") 
+rf_model <- rand_forest() %>% set_args(mtry = tune(), trees=tune(), min_n=tune(), sample.fraction=wts) %>% set_engine("ranger", importance = "permutation", probability=T) %>% set_mode("classification") 
 
 # set the workflow
 rf_workflow <- workflow() %>% add_recipe(BBoccurrence_recipe) %>% add_model(rf_model)
 
 # tune model
-tgrid <- expand.grid(mtry = 3, trees = c(100,500), min_n=c(50,100,500))
+tgrid <- expand.grid(mtry = c(1,3), trees = c(100,500), min_n=c(30,100,500))
 rf_tune_results <- rf_workflow %>% tune_grid(resamples = datz.train.cv,  grid = tgrid, metrics = metric_set(roc_auc, accuracy))
 
 tuneres <- rf_tune_results %>% collect_metrics()
 
 param_best<- rf_tune_results %>% select_best(metric = "roc_auc")
 
-
 # Use backward selection to identify important variables
-dfo.vsurf <- VSURF::VSURF(datz.train[,vars], factor(datz.train[,response]), RFimplem="ranger", parallel=T, mtry=param_best$mtry, ntree=param_best$trees, min.node.size=param_best$min_n)
+dfo.vsurf <- VSURF::VSURF(datz.train[,vars], factor(datz.train[,response]), RFimplem="ranger", parallel=T, mtry=max(param_best$mtry,length(vars.final)), ntree=param_best$trees, min.node.size=param_best$min_n)
 registerDoSEQ()
 vars.final <- unique(c(vars[dfo.vsurf$varselect.pred]))
   
 BBoccurrence_recipe_final <- recipe(formula(paste(response, "~", paste(vars.final, collapse = " + "))), data=datBB.c)
   
-rf_model_final <- rand_forest() %>% set_args(mtry = param_best$mtry, trees=param_best$trees, min_n=param_best$min_n, splitrule="gini", probability=T) %>% set_engine("ranger",  class.weights=wts,  importance = "permutation", probability=T) %>% set_mode("classification") 
-  
+#BBoccurrence_recipe_final <-  recipe(formula("agentWBBB~1"), data=datBB.c)
+
+rf_model_final <- rand_forest() %>% set_args(mtry = param_best$mtry, trees=param_best$trees, min_n=param_best$min_n, splitrule="gini", probability=T) %>% set_engine("ranger", sample.fraction=wts,  importance = "permutation", probability=T) %>% set_mode("classification") 
+
 rf_workflow_final <- workflow() %>% add_recipe(BBoccurrence_recipe_final) %>% add_model(rf_model_final)
-rf_workflow_final_fit<- rf_workflow_final %>% last_fit(splitit) #emulates the process where, after determining the best model, the final fit on the entire training set is needed and is then evaluated on the test set.
+rf_workflow_final_fit<- rf_workflow_final %>% last_fit(splitit)
+#emulates the process where, after determining the best model, the #final fit on the entire training set is needed and is then evaluated #on the test set.
 
-test_performance <- rf_workflow_final_fit %>% collect_metrics()
-write.csv(test_performance, here("Results/RF-testperformance-WBBB-occurrence.csv"), row.names=F)
-  
-# generate predictions from the training dataset
+## generate a confusion matrix for test set
 test_predictions <- rf_workflow_final_fit %>% collect_predictions()
-write.csv(test_predictions , here("Results/RF-pred-WBBB-occurrence.csv"), row.names=F)
-
-# generate a confusion matrix
 confusion <- test_predictions %>% conf_mat(response,estimate = .pred_class)
 write.csv(confusion$table, here("Results/RF-confusiontable-WBBB-occurrence.csv"), row.names=F)
 
-# variable importance
+## variable importance
+final_model <- fit(rf_workflow_final, data=datz.train)
+ranger_obj <- pull_workflow_fit(final_model)$fit
+
+## generate predictions for entire dataset
+x <- datBB.c$PLT_CN
+x <- cbind(x, predict(ranger_obj, datBB.c)$predictions[,2])
+colnames(x) <- c("PLT_CN", "WBBBpred")
+write.csv(x, here("Results/RF-pred-WBBB-occurrence.csv"), row.names=F)
+
+## variable importance
 final_model <- fit(rf_workflow_final, data=datz.train)
 ranger_obj <- pull_workflow_fit(final_model)$fit
 
@@ -1352,7 +993,7 @@ x <- x[order(x$prop),]
 x$var <- factor(x$var, levels=x$var, ordered=T)
 write.csv(x, here("Results/RF-vimp-WBBB-occurrence.csv"), row.names=F)
 
-# partial dependence
+## partial dependence
 pd <- NULL
 for(z in vars.final){
   pdz <- partial(ranger_obj, train=datz.train, pred.var=z, which.class="WBBB")
@@ -1363,54 +1004,168 @@ for(z in vars.final){
 write.csv(pd,  here("Results/RF-partialdependence-WBBB-occurrence.csv"), row.names=F)
 ```
 
+```{r}
+wbbbp <- read.csv(here("Results/RF-partialdependence-WBBB-occurrence.csv"))
+
+sbp <- read.csv(here("Results/RF-partialdependence-SB-occurrence.csv"))
+
+mpbp <- read.csv(here("Results/RF-partialdependence-MPB-occurrence.csv"))
+
+```
+
 
 ```{r, eval=F}
 mpbo <- read.csv(here("Results/RF-pred-MPB-occurrence.csv"))
 sbo <- read.csv(here("Results/RF-pred-SB-occurrence.csv"))
 wbbbo <- read.csv(here("Results/RF-pred-WBBB-occurrence.csv"))
 
+threshold <-0.5
 
-bbo <- datz.test
-bbo$mpbpred <- mpbo$.pred_MPB
-bbo$sbpred <- sbo$.pred_SB 
-bbo$wbbbpred <- wbbbo$.pred_WBBB
-bbo$mpba<- mpbo$agentMPB
-bbo$sba<- sbo$agentSB
-bbo$wbbba<- wbbbo$agentWBBB
+bbo <- merge(mpbo, sbo, by="PLT_CN")
+bbo <- merge(bbo, wbbbo, by="PLT_CN")
 
-bbo.sub <- bbo[bbo$mpbpred>0.25 &bbo$wbbbpred>0.25 & bbo$sbpred>0.25,   ]
-nrow(bbo.sub)
-bbo$actualSUM <- ifelse(bbo$mpba=="absent",0, 1) + ifelse(bbo$sba=="absent",0, 1) + ifelse(bbo$wbbba=="absent",0, 1)
+bbo$MPBpred01 <- ifelse(bbo$MPBpred>threshold,"MPB", "")
+bbo$SBpred01  <- ifelse(bbo$SBpred>threshold,"SB", "")
+bbo$WBBBpred01  <- ifelse(bbo$WBBBpred>threshold,"WBBB", "")
 
-bbo$predSUM <- bbo$mpbpred + bbo$sbpred +bbo$wbbbpred
-bbo$predSUM01 <- ifelse(bbo$predSUM >0.5, 1, 0)
+nrow(bbo[(bbo$MPBpred>threshold | bbo$SBpred> threshold | bbo$WBBBpred > threshold),])/nrow(bbo) # 97% of stands had conditions suitable for one agent
 
-bbo$pres <- factor(ifelse(bbo$actualSUM >0, 1, 0), "affected", "unaffected")
+nrow(bbo[bbo$MPBpred>threshold ,])/nrow(bbo) # 55% of stands had conditions suitable for MPB
 
-ggplot(bbo, aes(x=predSUM, y=actualSUM))+geom_boxplot()
+nrow(bbo[bbo$SBpred>threshold ,])/nrow(bbo) # 52% of stands had conditions suitable for SB
 
-bbo$predSUM <- bbo$mpbpred + bbo$sbpred +bbo$wbbbpred
-bbo$predSUM01 <- ifelse(bbo$predSUM >0.5, 1, 0)
-bbo 
+nrow(bbo[bbo$WBBBpred>threshold ,])/nrow(bbo) # 55% of stands had conditions suitable for WBBB
 
-bbo$rMPB <- ifelse(bbo$agentMPB=="MPB", 1,0) - bbo$mpbpred 
-bbo$rSB <- ifelse(bbo$agentSB=="SB", 1,0) - bbo$sbpred 
-bbo$rWBBB <- ifelse(bbo$agentWBBB=="WBBB", 1,0) - bbo$wbbbpred
-bbo$rSUM <- bbo$rMPB + bbo$rSB + bbo$rWBBB 
+nrow(bbo[bbo$MPBpred>threshold & bbo$SBpred>threshold  ,])/nrow(bbo) # 55% of stands had conditions suitable for WBBB
+
+nrow(bbo[bbo$SBpred>threshold & bbo$WBBBpred>threshold  ,])/nrow(bbo) # 55% of stands had conditions suitable for WBBB
+
+nrow(bbo[bbo$SBpred>threshold & bbo$WBBBpred>threshold & bbo$MPBpred>threshold  ,])/nrow(bbo) # 55% of stands had conditions suitable for WBBB
 
 
+bbo$agentspred <- do.call(paste, c(bbo[c("MPBpred01", "SBpred01", "WBBBpred01")],sep="-"))
+bbo$agentspred <- factor(bbo$agentspred, level=c("--","MPB--","-SB-","--WBBB","MPB-SB-","MPB--WBBB","-SB-WBBB", "MPB-SB-WBBB"), labels=c("none", "MPB", "SB", "WBBB", "MPB & SB", "MPB & WBBB", "SB & WBBB", "MPB, SB, & WBBB"), ordered=T)
 
-x <- read.csv(here("Results/RF-partialdependence-SB-occurrence.csv"))
+bbo$hostspred <- factor(bbo$agentspred , levels=c("none", "MPB", "SB", "WBBB", "MPB & SB", "MPB & WBBB", "SB & WBBB", "MPB, SB, & WBBB"),  labels=c("none", "PICO", "PIEN", "ABLA", "PICO\n& PIEN", "PICO\n& ABLA", "PIEN \n& ABLA", "PICO, PIEN,\n& ABLA"), ordered=T)
+
+bbo.sub <- bbo[!bbo$agentspred == "none",   ]
+
+bbo.dat <- merge(bbo.sub,df, by="PLT_CN", all=T)
+
 ```
 
 
-#### Severity
-##### MPB
-##### SB
-##### WBBB
+### Given suitable stand conditions, is co-occurrence common?
+
+```{r}
+Fig.file <- here("Results/Figures/Figure-AgentbyHostcombo.jpg")
+bbo.dat$hostsFPshort<- bbo.dat$hostsFPlong
+bbo.dat$hostsFPshort <- factor(bbo.dat$hostsFPlong, levels=levels(bbo.dat$hostsFPlong), labels=c("PICO", "PIEN", "ABLA", "PICO\n&\nPIEN", "PICO\n&\nABLA", "PIEN\n&\nABLA", "PICO,\nPIEN,\n&\nABLA"))
+bbo.dat$agentsFplongrev <- bbo.dat$agentsFplong
+bbo.dat$agentsFplongrev <- factor(bbo.dat$agentsFplongrev, levels=rev(levels( bbo.dat$agentsFplong)))
+#jpeg(Fig.file, width=fig.width2,height=fig.width1.5,units="in", res=300)
+ggplot(bbo.dat[bbo.dat$focalhost=="Any",], aes(x=hostsFPshort,fill=agentsFplongrev))+geom_bar()+theme(legend.title = element_blank())+xlab("hosts")+scale_fill_manual(values=p2col)
+#whatever <- dev.off()
+```
 
 
 
+### Is occurrence more likely in stands with multiple hosts?
+
+### Is severity greater in stands with multiple hosts?
+
+
+
+```{r}
+mpb <- as.data.frame(table(bbo.dat[bbo.dat$focalagent=="MPB","affected"], bbo.dat[bbo.dat$focalagent=="MPB","hostspred"]))
+sb <- as.data.frame(table(bbo.dat[bbo.dat$focalagent=="SB","affected"], bbo.dat[bbo.dat$focalagent=="SB","hostspred"]))
+wbbb <- as.data.frame(table(bbo.dat[bbo.dat$focalagent=="WBBB","affected"], bbo.dat[bbo.dat$focalagent=="WBBB","hostspred"]))
+any<- as.data.frame(table(bbo.dat[bbo.dat$focalagent=="Any","affected"], bbo.dat[bbo.dat$focalagent=="Any","hostspred"]))
+
+results <- NULL
+for(j in levels(bbo.dat$hostspred)[5:8]){
+  anyj <- any[any$Var2==j,]
+  mpbj <- mpb[mpb$Var2==j,]
+  sbj <- sb[sb$Var2==j,]
+  wbbbj <- wbbb[wbbb$Var2==j,]
+  
+  x <- prop.test(x=c(mpbj[1,3],anyj[1,3]), n=c(mpbj[1,3]+mpbj[2,3], anyj[1,3]+anyj[2,3]))
+
+  res <- data.frame(hostspred=NA, barkbeetle=NA, X=NA, p=NA, prop1=NA, prop2 =NA, lower=NA, upper=NA)
+  res$hostspred <-j
+  res$barkbeetle <- "MPB"
+  res$X <- x$statistic
+  res$p <- x$p.value
+  res$prop1 <- x$estimate[1]
+  res$prop2 <- x$estimate[2]
+  res$lower <- x$conf.in[1]
+  res$upper <- x$conf.in[2]
+  x <-NULL
+  results <- rbind(results, res)
+    
+    x <- prop.test(x=c(sbj[1,3],anyj[1,3]), n=c(sbj[1,3]+sbj[2,3], anyj[1,3]+anyj[2,3]))
+
+  res <- data.frame(hostspred=NA, barkbeetle=NA, X=NA, p=NA, prop1=NA, prop2 =NA, lower=NA, upper=NA)
+  res$hostspred <-j
+  res$barkbeetle <- "SB"
+  res$X <- x$statistic
+  res$p <- x$p.value
+  res$prop1 <- x$estimate[1]
+  res$prop2 <- x$estimate[2]
+  res$lower <- x$conf.in[1]
+  res$upper <- x$conf.in[2]
+  x <-NULL
+  results <- rbind(results, res)
+  
+   x <- prop.test(x=c(wbbbj[1,3],anyj[1,3]), n=c(wbbbj[1,3]+wbbbj[2,3], anyj[1,3]+anyj[2,3]), alternative="less")
+
+  res <- data.frame(hostspred=NA, barkbeetle=NA, X=NA, p=NA, prop1=NA, prop2 =NA, lower=NA, upper=NA)
+  res$hostspred <-j
+  res$barkbeetle <- "WBBB"
+  res$X <- x$statistic
+  res$p <- x$p.value
+  res$prop1 <- x$estimate[1]
+  res$prop2 <- x$estimate[2]
+  res$lower <- x$conf.in[1]
+  res$upper <- x$conf.in[2]
+  x <-NULL
+  results <- rbind(results, res)
+}
+
+results$p <- round(results$p,3)
+
+x <- bbo.dat[is.na(bbo.dat$hostspred)==FALSE,]
+x <- x[x$hostspred %in% levels(x$hostspred)[5:8],]
+x[x$hostspred == "PICO\n& PIEN" & x$focalagent=="WBBB","affected"]<- 0
+x[x$hostspred == "PICO\n& ABLA" & x$focalagent=="SB","affected"]<- 0
+x[x$hostspred == "PIEN\n& ABLA" & x$focalagent=="MPB","affected"]<- 0
+
+xx <- x %>% group_by(hostspred,focalagent) %>% count(affected)
+xxx <- x %>% group_by(hostspred) %>% count()
+
+xxxx <- merge(xx, xxx, by="hostspred")
+xxxx$prop <- xxxx$n.x/xxxx$n.y
+xxxx <- xxxx[xxxx$affected=="affected",]
+xxxx <- xxxx[,c(1,2,6)]
+colnames(xxxx) <- c("hostspred", "barkbeetle", "prop")
+
+resultsx <- merge(results, xxxx, id.vars=c("hostspred", "barkbeetle"), all=T)
+resultsx$barkbeetle <- factor(resultsx$barkbeetle, levels=c("MPB", 'SB', "WBBB", "Any"), ordered=T)
+resultsx <- resultsx[is.na(resultsx$prop)==FALSE,]
+resultsx$hostspred <- factor(resultsx$hostspred, levels=levels(bbo.dat$hostspred)[5:8], ordered=T)
+resultsx$pplot <- ifelse(resultsx$p<0.05, "*", "")
+resultsx$pplot[is.na(resultsx$pplot) ==TRUE] <- ""
+
+
+Fig.file <- here("Results/Figures/Figurey.jpg")
+jpeg(Fig.file, width=fig.width2,height=fig.width1,units="in", res=300)
+ggplot(resultsx, aes(x=barkbeetle,y=prop, fill=barkbeetle))+geom_bar(stat="identity")+theme(legend.title = element_blank())+geom_text(aes(label=pplot), vjust=-0.25,size=6)+facet_grid(.~hostspred, scales="free_x", space="free_x")+xlab("bark beetle species")+scale_fill_manual(values=c(p1col[1:3], gray(0.3)))+theme(legend.position = "none")+ylab("proportion of plots")
+whatever <- dev.off()
+```
+
+
+To determine if host diversity or identity influences the occurrence tree mortality attributed to bark beetles within a stand, we used simple Chi-square tests. Given a significant difference among groups, we then used pairwise Fisher's exact tests to determine pairwise differences, while accounting for multiple comparisons [@Benjamini_controlling_1995].
+ 
 # Results
 
 ### Patterns
@@ -1434,7 +1189,7 @@ knitr::include_graphics( here("Results/Figures/Figure-PresencebyHostcombos.jpg")
 ## Occurrence 
 
 
-```{r FigPropAgentxHosts, fig.cap = "A caption for figure 1", out.width = "504pt"}
+```{r FigPropAgentxHosts, fig.cap = "A caption for figure 1", out.width = "504pt", eval=F}
 knitr::include_graphics( here("Results/Figures/Figure-PropAffectedByAgentXHosts.jpg"))
 ```
 
@@ -1540,7 +1295,6 @@ ggsave(here("Results/Figures/Figure-ClimateByHostIdentity.jpg"), plot=ggclimatec
 knitr::include_graphics(here("Results/Figures/Figure-ClimateByHostIdentity.jpg"))
 ```
 
-Stands with Engelmann spruce present occur at more southerly latitudes than stands with 
 
 ```{r generate maps, eval=F}
 df.all <- df.sub[df.sub$focalhost == "Any", ]
