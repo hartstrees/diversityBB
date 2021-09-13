@@ -1,0 +1,5 @@
+".metric",".estimator",".estimate",".config"
+"accuracy","binary",0.755030341743852,"Preprocessor1_Model1"
+"sens","binary",0.758192480165574,"Preprocessor1_Model1"
+"spec","binary",0.71551724137931,"Preprocessor1_Model1"
+"roc_auc","binary",0.837805247945189,"Preprocessor1_Model1"
