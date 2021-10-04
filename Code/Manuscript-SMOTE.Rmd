@@ -1,6 +1,6 @@
 ---
 title: "Host richness increases the occurrence but not the severity of bark beetle-induced tree mortality"
-author: "Sarah J. Hart"
+author: "Sarah J. Hart et al."
 email: "sarah.hart@colostate.edu"
 date: '`r format(Sys.time(), "%B %d, %Y")`'
 output: 
@@ -15,6 +15,8 @@ bibliography: "`r here:::here('MyLib.bib')`"
 urlcolor: blue
 linkcolor: blue
 citationcolor: blue
+editor_options: 
+  chunk_output_type: inline
 ---
 
 ```{r setup, include=FALSE}
@@ -38,12 +40,13 @@ ipak <- function(pkg){
 options(repos = c(CRAN = "http://cran.rstudio.com"))
 
 ### Import libraries
-ipak(c('tidyverse', 'tidymodels', 'reshape2', 'here', 'rgdal', 'sp', 'raster', 'stars', 'sf', 'prism', 'tigris', "tmap", 'fasterize', 'ggplot2','RColorBrewer','ggsci', 'patchwork', 'colorspace', 'grid', 'knitr',  'kableExtra', 'bookdown',  'pdp', 'ranger', 'VSURF', 'themis', 'foreach'))
+ipak(c('tidyverse', 'tidymodels', 'reshape2', 'here', 'rgdal', 'sp', 'raster', 'stars', 'sf', 'prism', 'tigris', "tmap", 'fasterize', 'ggplot2','RColorBrewer','ggsci', 'patchwork', 'colorspace', 'grid', 'knitr',  'kableExtra', 'bookdown',  'pdp', 'ranger', 'VSURF', 'themis', 'foreach',  'FSA', 'parallel'))
 
-
-#foreach', 'parallel', 'doParallel', 'quickPlot', 'reshape2','vegan', 'FSA', 
 # Set seed
 set.seed(2020)
+
+# Set number of cores for parralell processing
+cores <- parallel::detectCores()
 
 # Set custom plotting theme
 theme_new <- function(base_size = 9,base_family = "Helvetica"){
@@ -158,18 +161,23 @@ In this context there is a particular need to understand interactions between ou
 - management
 
 Paragraph 2: Theoretical context - diversity & natural enemies
-- Many studies have sought to understand how community diversity influences interactions between natural enemies and their resources.
-- Key hypotheses:
+
+Many studies have sought to understand how community diversity influences interactions between natural enemies and their resources. In the case of plant-herbivore interactions, the greater plant diversity often reduces herbivory effects on plants at both the individual and population level [i.e. 'associational resistance, @barbosa_associational_2009, @jactel_tree_2021]. The resource concentration hypothesis suggests that specialists insect herbivores are less likely to find and stay in stands where their hosts are less abundant [@root_organization_1973]. This may occur if insects are less likely to find a host tree due [i.e. 'host dilution effect', @] or chemical masking of the focal tree by heterospecific neighbors [i.e. 'host apparency hypothesis', @Castagneryrol_effects_2014]
+
+[i.e., 'resource concentration hypothesis', @root_organization_1973].
+
+However, benefits provided by mixtures are less evident for larger-scale disturbances [@jactel_tree_2021]
+suggesting that changes in the structure of host communities, rather than biodiversity per se, can explain when a dilution effect should be observed. 
+
+
 1 - associational resistance - the abundance or damage of herbivores is lower when plant diversity is greater [@barbosa_associational_2009, @jactel_tree_2021]
 hypotheses:
 1 - resource concentration: the presence of heterospecific neighbors around a tree of a focal species grown in mixed stands leads to a lower probability of host tree finding by insect herbivores due to lower host abundance or frequency [@root_organization_1973]
 2 - host apparency: 
 3 - decoy: preference for non-host trees
 
-However, benefits provided by mixtures are less evident for larger-scale disturbances [@jactel_tree_2021]
 
-suggesting that changes in the structure of host communities, rather than biodiversity per se, can explain when a dilution effect should be observed. 
-
+H
 Most studies have focused on individual- or population-level outcomes. 
 
 For instance, increased host community diversity may either increase or decrease the susceptibility of individuals to their natural enemies. 
@@ -184,12 +192,16 @@ To better understand how community diversity influences interactions between nat
 greater host richness will increase the probability of outbreak occurrence 
 
 Bark beetles (Curculionidae: Scolytinae) are among the few native insect species that can kill large numbers of trees in a single year. Bark beetles bore through the bark, where they mate and oviposit their eggs. Concurrently, bark beetles introduce pathogenic fungi Larvae feeding upon the phloem and fungal spread stop the translocation of water and nutrients and cause tree death. Conifer defense against bark beetles consists primarily of resin exudation that physically expels the beetle and allelochemicals, which repel or kill beetles. To overcome these defenses and colonize live trees, bark beetles rely on a mass-attack strategy, where pioneering beetles emit aggregation pheromones that call conspecifics to the tree. Typically bark beetles exist at low population levels and attack weakened trees, but as populations increase bark beetles attack increasingly better defended trees.For instance, in the continental western United States bark beetles have killed more than XXXX trees over the past X decades. Such severe mortality occurs only during outbreaks when pheromone-mediated mass-attack allows bark beetles to overcome tree defenses. 
+
 For instance, a primary goal of the Western Bark Beetle is to promote resilience of forests to bark beetle outbreaks by increasing the diversity of age classes and tree species. 
 
 
-If greater host richness increases niche space for bark beetles, then community-level occurrence of bark beetle activity will be greater in more diverse communities. community-level severity, here the amount and proportion of basal area affected by bark beetles, will be lower in stands with more host species.  
+To test these hypotheses, we used a large dataset consisting of XXX,XXX plots established by the United States Forest Service Forest Inventory and Analysis Program (FIA; https://www.fia.fs.fed.us/). 
 
-To test these hypotheses, we used a large dataset consisting of XXX,XXX plots established by the United States Forest Service Forest Inventory and Analysis Program (FIA; https://www.fia.fs.fed.us/). Specifically we ask: (1) Is the occurrence or severity of bark beetle 
+We expect that co-occurrence of trees of different host species will be common, but co-occurrence of stand conditions suitable for multiple bark beetle species will not. Given stands where conditions are suitable for multiple bark beetle species, occurrence of bark beetle-driven tree mortality will be greater (i.e. diversity begets diversity), but severity will be lower (i.e. resource concentration). 
+
+We also expected the severity of bark beetle infestation to vary with the number of agents present, but with two alternative hypotheses. If the population dynamics of each bark beetle species are independent, then stands with multiple agents will experience higher tree mortality than stands with only one agent (i.e. additive effects). Alternatively, lower tree mortality may occur if concurrent outbreaks of bark beetles of different species cause semiochemical confusion or if competitive release increases tree defensive capacity. 
+
 
 # Methods
 
@@ -229,7 +241,7 @@ wbbb <- 11015 # western balsam bark beetle
 sfm <- 80002 # subalpine fir mortality
 ```
 
-The study area consists of subalpine lodgepole pine (*Pinus contorta*), subalpine fir (*Abies lasiocarpa*), and Engelmann spruce (*Picea engelmannii*) forest in the Intermountain West (i.e., Arizona, New Mexico, Colorado, Utah, Nevada, Idaho, Montana, Wyoming; Fig. \@ref(fig:FigSA)
+The study area consists of subalpine lodgepole pine (*Pinus contorta*), subalpine fir (*Abies lasiocarpa*), and Engelmann spruce (*Picea engelmannii*) forest in the Intermountain West (i.e., Arizona, New Mexico, Colorado, Utah, Nevada, Idaho, Montana, Wyoming)
 
 
 ## Data
@@ -515,19 +527,19 @@ df$agentMPB <- ifelse(df$stand.MPB>0, "MPB", "absent")
 df$agentWBBB <- ifelse(df$stand.WBBB>0, "WBBB", "absent")
 
 df$agents <-  do.call(paste, c(df[c("agentSB", "agentMPB", "agentWBBB")],sep="-"))
-df$agents <- factor(df$agents, levels=c("absent-absent-absent","absent-MPB-absent","SB-absent-absent", "SB-MPB-absent", "absent-absent-WBBB", "SB-absent-WBBB", "absent-MPB-WBBB", "SB-MPB-WBBB"), labels=c("none", "MPB", "SB", "MPB & SB", "WBBB", "SB & WBBB", "MPB & WBBB", "MPB, SB & WBBB"))
+df$agents <- factor(df$agents, levels=c("absent-absent-absent","absent-MPB-absent","SB-absent-absent", "SB-MPB-absent", "absent-absent-WBBB", "SB-absent-WBBB", "absent-MPB-WBBB", "SB-MPB-WBBB"), labels=c("none", "MPB", "SB", "MPB+SB", "WBBB", "SB+WBBB", "MPB+WBBB", "MPB+SB+WBBB"))
 
 df$nagents <- df$agents
-df$nagents <- factor(df$nagents, levels=c("none", "MPB", "SB", "MPB & SB", "WBBB", "SB & WBBB", "MPB & WBBB", "MPB, SB & WBBB"), labels=c(0, 1, 1, 2, 1, 2, 2, 3))
+df$nagents <- factor(df$nagents, levels=c("none", "MPB", "SB", "MPB+SB", "WBBB", "SB+WBBB", "MPB+WBBB", "MPB+SB+WBBB"), labels=c(0, 1, 1, 2, 1, 2, 2, 3))
 
 df$hostsPICO <- ifelse(df$TPH.PICO>0, "PICO", "absent")
 df$hostsPIEN <- ifelse(df$TPH.PIEN>0, "PIEN", "absent")
 df$hostsABLA <- ifelse(df$TPH.ABLA>0, "ABLA", "absent")
 df$hosts <-  do.call(paste, c(df[c("hostsPICO", "hostsPIEN", "hostsABLA")],sep="-"))
-df$hosts <- factor(df$hosts, levels=c('PICO-absent-absent','absent-absent-ABLA', 'absent-PIEN-absent', 'PICO-PIEN-absent',   'PICO-absent-ABLA', 'absent-PIEN-ABLA', 'PICO-PIEN-ABLA', 'absent-absent-absent'), labels= c('PICO', 'ABLA', 'PIEN', 'PICO & PIEN', 'PICO & ABLA', 'PIEN & ABLA', 'PICO, PIEN, & ABLA', 'none'), ordered=TRUE)
+df$hosts <- factor(df$hosts, levels=c('PICO-absent-absent','absent-absent-ABLA', 'absent-PIEN-absent', 'PICO-PIEN-absent',   'PICO-absent-ABLA', 'absent-PIEN-ABLA', 'PICO-PIEN-ABLA', 'absent-absent-absent'), labels= c('PICO', 'ABLA', 'PIEN', 'PICO+PIEN', 'PICO+ABLA', 'PIEN+ABLA', 'PICO+PIEN+ABLA', 'none'), ordered=TRUE)
 
 df$nhosts <- df$hosts
-df$nhosts <- factor(df$nhosts, levels=c('PICO', 'ABLA', 'PIEN', 'PICO & PIEN', 'PICO & ABLA', 'PIEN & ABLA', 'PICO, PIEN, & ABLA', 'none'), labels=c(1, 1,1,2,2,2,3,0))
+df$nhosts <- factor(df$nhosts, levels=c('PICO', 'ABLA', 'PIEN', 'PICO+PIEN', 'PICO+ABLA', 'PIEN+ABLA', 'PICO+PIEN+ABLA', 'none'), labels=c(1, 1,1,2,2,2,3,0))
 
 write.csv(df, here("Data/Processed/FIAdat-df.csv"),row.names=F)
 ```
@@ -613,16 +625,14 @@ write.csv(df, here("Data/Processed/FIAdat-df-merge-re.csv"),row.names=F)
 
 ## Analyses
 
-### Descriptive analyses
 ```{r import processed data}
 df <- read.csv( here("Data/Processed/FIAdat-df-merge-re.csv"))
 df$nhostsF <-factor(df$nhosts, levels=1:3, labels=c("one", "two", "three"), ordered=T)
-df$hosts <- factor(df$hosts, levels=c("PICO", "PIEN", "ABLA", "PICO & PIEN", "PICO & ABLA", "PIEN & ABLA", "PICO, PIEN, & ABLA"), labels=c("PICO", "PIEN", "ABLA", "PICO\n& PIEN", "PICO\n& ABLA", "PIEN \n& ABLA", "PICO, PIEN,\n& ABLA"), ordered=T)
-df$hostsFPlong <- factor(df$hosts, levels=c("PICO", "PIEN", "ABLA", "PICO\n& PIEN", "PICO\n& ABLA", "PIEN \n& ABLA", "PICO, PIEN,\n& ABLA"), labels=c("PICO", "PIEN", "ABLA", "PICO & PIEN", "PICO & ABLA", "PIEN & ABLA", "PICO, PIEN, & ABLA"), ordered=T)
+df$hosts <- factor(df$hosts, levels=c("PICO", "PIEN", "ABLA", "PICO+PIEN", "PICO+ABLA", "PIEN+ABLA", "PICO+PIEN+ABLA"), ordered=T)
+df$hostsFP <- factor(df$hosts, levels=c("PICO", "PIEN", "ABLA", "PICO+PIEN", "PICO+ABLA", "PIEN+ABLA", "PICO+PIEN+ABLA"), labels=c("PICO", "PIEN", "ABLA", "PICO & PIEN", "PICO & ABLA", "PIEN & ABLA", "PICO, PIEN, & ABLA"), ordered=T)
 
 df$nagentsF <- factor(df$nagents, levels=0:3, ordered=T)
-df$agentsF <- factor(df$agents, levels=c("none", "MPB", "SB", "WBBB", "MPB & SB","MPB & WBBB",  "SB & WBBB", "MPB, SB & WBBB"), labels=c("unaffected", "MPB", "SB", "WBBB", "MPB\n& SB","MPB &\nWBBB",  "SB &\nWBBB", "MPB,\nSB, &\nWBBB"), ordered=T)
-df$agentsFplong <- factor(df$agents, levels=c("none", "MPB", "SB", "WBBB", "MPB & SB","MPB & WBBB",  "SB & WBBB", "MPB, SB & WBBB"), labels=c("unaffected", "MPB", "SB", "WBBB", "MPB & SB","MPB & WBBB",  "SB & WBBB", "MPB, SB, & WBBB"), ordered=T)
+df$agentsF <- factor(df$agents, levels=c("none", "MPB", "SB", "WBBB", "MPB+SB","MPB+WBBB",  "SB+WBBB", "MPB+SB+WBBB"), ordered=T)
 
 df$focalhost <- factor(df$focalhost, levels=c("PICO", "PIEN", "ABLA", "Allhosts"), labels=c("PICO", "PIEN", "ABLA", "Any"), ordered=T)
 
@@ -633,10 +643,1361 @@ df$propBA.PIEN <- df$BA.PIEN / df$BA.total *100
 df$propBA.ABLA <- df$BA.ABLA / df$BA.total *100
 ```
 
+### Model the suitable stand conditions
+Construct random forest models using synthetic minority oversampling technique (SMOTE), an approach for dealing with imbalanced data. The SMOTE approach oversamples the minority class by synthesizing new cases from the minority class. We compared this approach with two other common approaches for dealing with imbalanced data in a random forest framework - balanced and weighted random forests and selected the approach that classified affected plots with the greatest accuracy. 
+
+```{r fit MPB RF model SMOTE, eval=F}
+response <- "agentMPB"
+vars <- c("BA.PICO", "QMD.PICO", "propBA.PICO") # predictor variables
+datBB.c <- df[df$focalhost=="Any",] # dataframe containing response and predictors (here i had to subset it because of how my data was arranged)
+
+splitit <- initial_split(datBB.c, prop=.7, strata=response) # partition data to create test and training datasets stratified by the response class
+datz.train <- training(splitit) # create object with training data
+datz.test <- testing(splitit) # create object with testing data
+datz.train.cv <- vfold_cv(datz.train, strata=response, v=10) # partition training data to allow for cross validation (again stratified by the response class) for optimization of model hyperparameters
+
+# set formula
+BBoccurrence_recipe <- recipe(formula(paste(response, "~", paste(vars, collapse = " + "))), datz.train) %>% step_smote(response) # set model preprocessing to include SMOTE to simulate more presence cases
+
+# set sample weights (not used in SMOTE approach)
+wts <- 1/(table(datBB.c[,response])/ max(table(datBB.c[,response])))
+wts <- wts/sum(wts)
+
+# set model
+rf_model <- rand_forest() %>% set_args( trees=tune(), min_n=tune()) %>% set_engine("ranger", importance = "permutation", seed=913, probability=T, num.threads = cores) %>% set_mode("classification")  
+
+# set the workflow
+rf_workflow <- workflow() %>% add_recipe(BBoccurrence_recipe) %>% add_model(rf_model)
+
+# tune model
+tgrid <- expand.grid(trees = c(100,500), min_n=c(10, 50, 100))
+rf_tune_results <- rf_workflow %>% tune_grid(resamples = datz.train.cv,  grid = tgrid, metrics = metric_set(roc_auc, sens, spec))
+
+tuneres <- rf_tune_results %>% collect_metrics() # collect metrics
+
+param_best<- rf_tune_results %>% select_best(metric = "roc_auc") # select best hyperparameters
+
+# Use backward selection to identify important variables
+#dfo.vsurf <- VSURF::VSURF(datz.train[,vars], factor(datz.train[,response]), RFimplem="ranger", parallel=T, ntree=param_best$trees, min.node.size=param_best$min_n)
+#registerDoSEQ()
+#vars.final <- unique(c(vars[dfo.vsurf$varselect.pred]))
+vars.final <- vars
+BBoccurrence_recipe_final <- recipe(formula(paste(response, "~", paste(vars.final, collapse = " + "))), data=datBB.c) %>% step_smote(response) 
+  
+rf_model_final <- rand_forest() %>% set_args(trees=param_best$trees, min_n=param_best$min_n, splitrule="gini") %>% set_engine("ranger", importance = "permutation", probability=T, num.threads = cores) %>% set_mode("classification") 
+
+rf_workflow_final <- workflow() %>% add_recipe(BBoccurrence_recipe_final) %>% add_model(rf_model_final)
+rf_workflow_final_fit<- rf_workflow_final %>% last_fit(splitit, metrics=metric_set(roc_auc, sens, spec)) #emulates the process where, after determining the best model, the final fit on the entire training set is needed and is then evaluated on the test set. 
+test_performance <- rf_workflow_final_fit %>% collect_metrics()
+write.csv(test_performance, here(paste0("Results/RF-testperformance-", response, "-occurrence-SMOTE.csv")), row.names=F)
+  
+# generate a confusion matrix for test set
+test_predictions <- rf_workflow_final_fit %>% collect_predictions()
+confusion <- test_predictions %>% conf_mat(response,estimate = .pred_class)
+
+write.csv(confusion$table, here(paste0("Results/RF-confusiontable-", response, "-occurrence-SMOTE.csv")), row.names=F)
+
+# variable importance
+final_model <- fit(rf_workflow_final, data=datz.train)
+ranger_obj <- pull_workflow_fit(final_model)$fit
+
+# generate predictions for entire dataset
+x <- datBB.c$PLT_CN
+x <- cbind(x, predict(ranger_obj, datBB.c)$predictions[,2])
+colnames(x) <- c("PLT_CN", "SBpred")
+write.csv(x, here(paste0("Results/RF-pred-", response, "-occurrence-SMOTE.csv")), row.names=F)
+          
+x <- as.data.frame(ranger_obj$variable.importance)
+write.csv(x, here(paste0("Results/RF-vimp-", response, "-occurrence-SMOTE.csv")), row.names=F)
+          
+# partial dependence
+pd <- NULL
+for(z in vars.final){
+  pdz <- partial(ranger_obj, train=datz.train, pred.var=z, which.class=strsplit(response, split="agent")[[1]][2], prob=T)
+  pdz$var <- z
+  colnames(pdz) <- c("value","yhat","var")
+  pd <- rbind(pd, pdz)
+}
+write.csv(pd,  here(paste0("Results/RF-partialdependence-", response, "-occurrence-SMOTE.csv")), row.names=F)
+```
+
+```{r fit MPB RF model Balanced, eval=F}
+response <- "agentMPB"
+vars <- c("BA.PICO", "QMD.PICO", "propBA.PICO")
+datBB.c <- df[df$focalhost=="Any",]
+
+splitit <- initial_split(datBB.c, prop=.7, strata=response) # partition data to create test and training datasets stratified by the response class
+datz.train <- training(splitit)
+datz.test <- testing(splitit)
+datz.train.cv <- vfold_cv(datz.train, strata=response, v=10) # partition training data to allow for cross validation (again stratified by the response class) for optimization of model hyperparameters
+
+# set formula
+BBoccurrence_recipe <- recipe(formula(paste(response, "~", paste(vars, collapse = " + "))), datz.train) 
+# set sample weights
+wts <- 1/(table(datBB.c[,response])/ max(table(datBB.c[,response])))
+wts <- wts/sum(wts)
+
+# set model
+rf_model <- rand_forest() %>% set_args( trees=tune(), min_n=tune()) %>% set_engine("ranger", importance = "permutation", seed=913, probability=T, sample.fraction=wts) %>% set_mode("classification")  
+
+# set the workflow
+rf_workflow <- workflow() %>% add_recipe(BBoccurrence_recipe) %>% add_model(rf_model)
+
+# tune model
+tgrid <- expand.grid(trees = c(100,500), min_n=c(10, 50, 100))
+rf_tune_results <- rf_workflow %>% tune_grid(resamples = datz.train.cv,  grid = tgrid, metrics = metric_set(roc_auc, sens, spec))
+
+tuneres <- rf_tune_results %>% collect_metrics() # collect metrics
+
+param_best<- rf_tune_results %>% select_best(metric = "roc_auc") # select best hyperparameters
+
+# Use backward selection to identify important variables
+#dfo.vsurf <- VSURF::VSURF(datz.train[,vars], factor(datz.train[,response]), RFimplem="ranger", parallel=T, ntree=param_best$trees, min.node.size=param_best$min_n)
+#registerDoSEQ()
+#vars.final <- unique(c(vars[dfo.vsurf$varselect.pred]))
+vars.final <- vars
+BBoccurrence_recipe_final <- recipe(formula(paste(response, "~", paste(vars.final, collapse = " + "))), data=datBB.c)
+  
+rf_model_final <- rand_forest() %>% set_args(trees=param_best$trees, min_n=param_best$min_n, splitrule="gini") %>% set_engine("ranger", importance = "permutation", probability=T, sample.fraction=wts, num.threads = cores) %>% set_mode("classification") 
+
+rf_workflow_final <- workflow() %>% add_recipe(BBoccurrence_recipe_final) %>% add_model(rf_model_final)
+rf_workflow_final_fit<- rf_workflow_final %>% last_fit(splitit, metrics=metric_set(roc_auc, sens, spec)) #emulates the process where, after determining the best model, the final fit on the entire training set is needed and is then evaluated on the test set. 
+test_performance <- rf_workflow_final_fit %>% collect_metrics()
+write.csv(test_performance, here(paste0("Results/RF-testperformance-", response, "-occurrence-BALANCED.csv")), row.names=F)
+  
+# generate a confusion matrix for test set
+test_predictions <- rf_workflow_final_fit %>% collect_predictions()
+confusion <- test_predictions %>% conf_mat(response,estimate = .pred_class)
+
+write.csv(confusion$table, here(paste0("Results/RF-confusiontable-", response, "-occurrence-BALANCED.csv")), row.names=F)
+
+# variable importance
+final_model <- fit(rf_workflow_final, data=datz.train)
+ranger_obj <- pull_workflow_fit(final_model)$fit
+
+# generate predictions for entire dataset
+x <- datBB.c$PLT_CN
+x <- cbind(x, predict(ranger_obj, datBB.c)$predictions[,2])
+colnames(x) <- c("PLT_CN", "SBpred")
+write.csv(x, here(paste0("Results/RF-pred-", response, "-occurrence-BALANCED.csv")), row.names=F)
+          
+x <- as.data.frame(ranger_obj$variable.importance)
+write.csv(x, here(paste0("Results/RF-vimp-", response, "-occurrence-BALANCED.csv")), row.names=F)
+          
+# partial dependence
+pd <- NULL
+for(z in vars.final){
+  pdz <- partial(ranger_obj, train=datz.train, pred.var=z, which.class=strsplit(response, split="agent")[[1]][2], prob=T)
+  pdz$var <- z
+  colnames(pdz) <- c("value","yhat","var")
+  pd <- rbind(pd, pdz)
+}
+write.csv(pd,  here(paste0("Results/RF-partialdependence-", response, "-occurrence-BALANCED.csv")), row.names=F)
+```
+
+```{r fit MPB RF model Weighted, eval=F}
+response <- "agentMPB"
+vars <- c("BA.PICO", "QMD.PICO", "propBA.PICO")
+datBB.c <- df[df$focalhost=="Any",]
+
+splitit <- initial_split(datBB.c, prop=.7, strata=response) # partition data to create test and training datasets stratified by the response class
+datz.train <- training(splitit)
+datz.test <- testing(splitit)
+datz.train.cv <- vfold_cv(datz.train, strata=response, v=10) # partition training data to allow for cross validation (again stratified by the response class) for optimization of model hyperparameters
+
+# set formula
+BBoccurrence_recipe <- recipe(formula(paste(response, "~", paste(vars, collapse = " + "))), datz.train) 
+# set sample weights
+wts <- 1/(table(datBB.c[,response])/ max(table(datBB.c[,response])))
+wts <- wts/sum(wts)
+
+# set model
+rf_model <- rand_forest() %>% set_args( trees=tune(), min_n=tune()) %>% set_engine("ranger", importance = "permutation", seed=913, probability=T, class.weights=wts, num.threads = cores) %>% set_mode("classification")  
+
+# set the workflow
+rf_workflow <- workflow() %>% add_recipe(BBoccurrence_recipe) %>% add_model(rf_model)
+
+# tune model
+tgrid <- expand.grid(trees = c(100,500), min_n=c(10, 50, 100))
+rf_tune_results <- rf_workflow %>% tune_grid(resamples = datz.train.cv,  grid = tgrid, metrics = metric_set(roc_auc, sens, spec))
+
+tuneres <- rf_tune_results %>% collect_metrics() # collect metrics
+
+param_best<- rf_tune_results %>% select_best(metric = "roc_auc") # select best hyperparameters
+
+# Use backward selection to identify important variables
+#dfo.vsurf <- VSURF::VSURF(datz.train[,vars], factor(datz.train[,response]), RFimplem="ranger", parallel=T, ntree=param_best$trees, min.node.size=param_best$min_n)
+#registerDoSEQ()
+#vars.final <- unique(c(vars[dfo.vsurf$varselect.pred]))
+vars.final <- vars
+BBoccurrence_recipe_final <- recipe(formula(paste(response, "~", paste(vars.final, collapse = " + "))), data=datBB.c)
+  
+rf_model_final <- rand_forest() %>% set_args(trees=param_best$trees, min_n=param_best$min_n, splitrule="gini") %>% set_engine("ranger", importance = "permutation", probability=T, class.weights=wts, num.threads = cores) %>% set_mode("classification") 
+
+rf_workflow_final <- workflow() %>% add_recipe(BBoccurrence_recipe_final) %>% add_model(rf_model_final)
+rf_workflow_final_fit<- rf_workflow_final %>% last_fit(splitit, metrics=metric_set(roc_auc, sens, spec)) #emulates the process where, after determining the best model, the final fit on the entire training set is needed and is then evaluated on the test set. 
+test_performance <- rf_workflow_final_fit %>% collect_metrics()
+write.csv(test_performance, here(paste0("Results/RF-testperformance-", response, "-occurrence-WEIGHTED.csv")), row.names=F)
+  
+# generate a confusion matrix for test set
+test_predictions <- rf_workflow_final_fit %>% collect_predictions()
+confusion <- test_predictions %>% conf_mat(response,estimate = .pred_class)
+
+write.csv(confusion$table, here(paste0("Results/RF-confusiontable-", response, "-occurrence-WEIGHTED.csv")), row.names=F)
+
+# variable importance
+final_model <- fit(rf_workflow_final, data=datz.train)
+ranger_obj <- pull_workflow_fit(final_model)$fit
+
+# generate predictions for entire dataset
+x <- datBB.c$PLT_CN
+x <- cbind(x, predict(ranger_obj, datBB.c)$predictions[,2])
+colnames(x) <- c("PLT_CN", "SBpred")
+write.csv(x, here(paste0("Results/RF-pred-", response, "-occurrence-WEIGHTED.csv")), row.names=F)
+          
+x <- as.data.frame(ranger_obj$variable.importance)
+write.csv(x, here(paste0("Results/RF-vimp-", response, "-occurrence-WEIGHTED.csv")), row.names=F)
+          
+# partial dependence
+pd <- NULL
+for(z in vars.final){
+  pdz <- partial(ranger_obj, train=datz.train, pred.var=z, which.class=strsplit(response, split="agent")[[1]][2], prob=T)
+  pdz$var <- z
+  colnames(pdz) <- c("value","yhat","var")
+  pd <- rbind(pd, pdz)
+}
+write.csv(pd,  here(paste0("Results/RF-partialdependence-", response, "-occurrence-WEIGHTED.csv")), row.names=F)
+```
+
+```{r fit SB RF model SMOTE, eval=F}
+response <- "agentSB"
+vars <- c("BA.PIEN", "QMD.PIEN", "propBA.PIEN")
+datBB.c <- df[df$focalhost=="Any",]
+
+splitit <- initial_split(datBB.c, prop=.7, strata=response) # partition data to create test and training datasets stratified by the response class
+datz.train <- training(splitit)
+datz.test <- testing(splitit)
+datz.train.cv <- vfold_cv(datz.train, strata=response, v=10) # partition training data to allow for cross validation (again stratified by the response class) for optimization of model hyperparameters
+
+# set formula
+BBoccurrence_recipe <- recipe(formula(paste(response, "~", paste(vars, collapse = " + "))), datz.train) %>% step_smote(response) # set model preprocessing to include SMOTE to simulate more presence cases
+
+# set sample weights
+wts <- 1/(table(datBB.c[,response])/ max(table(datBB.c[,response])))
+wts <- wts/sum(wts)
+
+# set model
+rf_model <- rand_forest() %>% set_args( trees=tune(), min_n=tune()) %>% set_engine("ranger", importance = "permutation", seed=913, probability=T, num.threads = cores) %>% set_mode("classification")  
+
+# set the workflow
+rf_workflow <- workflow() %>% add_recipe(BBoccurrence_recipe) %>% add_model(rf_model)
+
+# tune model
+tgrid <- expand.grid(trees = c(100,500), min_n=c(10, 50, 100))
+rf_tune_results <- rf_workflow %>% tune_grid(resamples = datz.train.cv,  grid = tgrid, metrics = metric_set(roc_auc, sens, spec))
+
+tuneres <- rf_tune_results %>% collect_metrics() # collect metrics
+
+param_best<- rf_tune_results %>% select_best(metric = "roc_auc") # select best hyperparameters
+
+# Use backward selection to identify important variables
+#dfo.vsurf <- VSURF::VSURF(datz.train[,vars], factor(datz.train[,response]), RFimplem="ranger", parallel=T, ntree=param_best$trees, min.node.size=param_best$min_n)
+#registerDoSEQ()
+#vars.final <- unique(c(vars[dfo.vsurf$varselect.pred]))
+vars.final <- vars
+BBoccurrence_recipe_final <- recipe(formula(paste(response, "~", paste(vars.final, collapse = " + "))), data=datBB.c) %>% step_smote(response) 
+  
+rf_model_final <- rand_forest() %>% set_args(trees=param_best$trees, min_n=param_best$min_n, splitrule="gini") %>% set_engine("ranger", importance = "permutation", probability=T, num.threads = cores) %>% set_mode("classification") 
+
+rf_workflow_final <- workflow() %>% add_recipe(BBoccurrence_recipe_final) %>% add_model(rf_model_final)
+rf_workflow_final_fit<- rf_workflow_final %>% last_fit(splitit, metrics=metric_set(roc_auc, sens, spec)) #emulates the process where, after determining the best model, the final fit on the entire training set is needed and is then evaluated on the test set. 
+test_performance <- rf_workflow_final_fit %>% collect_metrics()
+write.csv(test_performance, here(paste0("Results/RF-testperformance-", response, "-occurrence-SMOTE.csv")), row.names=F)
+  
+# generate a confusion matrix for test set
+test_predictions <- rf_workflow_final_fit %>% collect_predictions()
+confusion <- test_predictions %>% conf_mat(response,estimate = .pred_class)
+
+write.csv(confusion$table, here(paste0("Results/RF-confusiontable-", response, "-occurrence-SMOTE.csv")), row.names=F)
+
+# variable importance
+final_model <- fit(rf_workflow_final, data=datz.train)
+ranger_obj <- pull_workflow_fit(final_model)$fit
+
+# generate predictions for entire dataset
+x <- datBB.c$PLT_CN
+x <- cbind(x, predict(ranger_obj, datBB.c)$predictions[,2])
+colnames(x) <- c("PLT_CN", "SBpred")
+write.csv(x, here(paste0("Results/RF-pred-", response, "-occurrence-SMOTE.csv")), row.names=F)
+          
+x <- as.data.frame(ranger_obj$variable.importance)
+write.csv(x, here(paste0("Results/RF-vimp-", response, "-occurrence-SMOTE.csv")), row.names=F)
+          
+# partial dependence
+pd <- NULL
+for(z in vars.final){
+  pdz <- partial(ranger_obj, train=datz.train, pred.var=z, which.class=strsplit(response, split="agent")[[1]][2], prob=T)
+  pdz$var <- z
+  colnames(pdz) <- c("value","yhat","var")
+  pd <- rbind(pd, pdz)
+}
+write.csv(pd,  here(paste0("Results/RF-partialdependence-", response, "-occurrence-SMOTE.csv")), row.names=F)
+```
+
+```{r fit SB RF model Balanced, eval=F}
+response <- "agentSB"
+vars <- c("BA.PIEN", "QMD.PIEN", "propBA.PIEN")
+datBB.c <- df[df$focalhost=="Any",]
+
+splitit <- initial_split(datBB.c, prop=.7, strata=response) # partition data to create test and training datasets stratified by the response class
+datz.train <- training(splitit)
+datz.test <- testing(splitit)
+datz.train.cv <- vfold_cv(datz.train, strata=response, v=10) # partition training data to allow for cross validation (again stratified by the response class) for optimization of model hyperparameters
+
+# set formula
+BBoccurrence_recipe <- recipe(formula(paste(response, "~", paste(vars, collapse = " + "))), datz.train) 
+# set sample weights
+wts <- 1/(table(datBB.c[,response])/ max(table(datBB.c[,response])))
+wts <- wts/sum(wts)
+
+# set model
+rf_model <- rand_forest() %>% set_args( trees=tune(), min_n=tune()) %>% set_engine("ranger", importance = "permutation", seed=913, probability=T, sample.fraction=wts, num.threads = cores) %>% set_mode("classification")  
+
+# set the workflow
+rf_workflow <- workflow() %>% add_recipe(BBoccurrence_recipe) %>% add_model(rf_model)
+
+# tune model
+tgrid <- expand.grid(trees = c(100,500), min_n=c(10, 50, 100))
+rf_tune_results <- rf_workflow %>% tune_grid(resamples = datz.train.cv,  grid = tgrid, metrics = metric_set(roc_auc, sens, spec))
+
+tuneres <- rf_tune_results %>% collect_metrics() # collect metrics
+
+param_best<- rf_tune_results %>% select_best(metric = "roc_auc") # select best hyperparameters
+
+# Use backward selection to identify important variables
+#dfo.vsurf <- VSURF::VSURF(datz.train[,vars], factor(datz.train[,response]), RFimplem="ranger", parallel=T, ntree=param_best$trees, min.node.size=param_best$min_n)
+#registerDoSEQ()
+#vars.final <- unique(c(vars[dfo.vsurf$varselect.pred]))
+vars.final <- vars
+BBoccurrence_recipe_final <- recipe(formula(paste(response, "~", paste(vars.final, collapse = " + "))), data=datBB.c)
+  
+rf_model_final <- rand_forest() %>% set_args(trees=param_best$trees, min_n=param_best$min_n, splitrule="gini") %>% set_engine("ranger", importance = "permutation", probability=T, sample.fraction=wts, num.threads = cores) %>% set_mode("classification") 
+
+rf_workflow_final <- workflow() %>% add_recipe(BBoccurrence_recipe_final) %>% add_model(rf_model_final)
+rf_workflow_final_fit<- rf_workflow_final %>% last_fit(splitit, metrics=metric_set(roc_auc, sens, spec)) #emulates the process where, after determining the best model, the final fit on the entire training set is needed and is then evaluated on the test set. 
+test_performance <- rf_workflow_final_fit %>% collect_metrics()
+write.csv(test_performance, here(paste0("Results/RF-testperformance-", response, "-occurrence-BALANCED.csv")), row.names=F)
+  
+# generate a confusion matrix for test set
+test_predictions <- rf_workflow_final_fit %>% collect_predictions()
+confusion <- test_predictions %>% conf_mat(response,estimate = .pred_class)
+
+write.csv(confusion$table, here(paste0("Results/RF-confusiontable-", response, "-occurrence-BALANCED.csv")), row.names=F)
+
+# variable importance
+final_model <- fit(rf_workflow_final, data=datz.train)
+ranger_obj <- pull_workflow_fit(final_model)$fit
+
+# generate predictions for entire dataset
+x <- datBB.c$PLT_CN
+x <- cbind(x, predict(ranger_obj, datBB.c)$predictions[,2])
+colnames(x) <- c("PLT_CN", "SBpred")
+write.csv(x, here(paste0("Results/RF-pred-", response, "-occurrence-BALANCED.csv")), row.names=F)
+          
+x <- as.data.frame(ranger_obj$variable.importance)
+write.csv(x, here(paste0("Results/RF-vimp-", response, "-occurrence-BALANCED.csv")), row.names=F)
+          
+# partial dependence
+pd <- NULL
+for(z in vars.final){
+  pdz <- partial(ranger_obj, train=datz.train, pred.var=z, which.class=strsplit(response, split="agent")[[1]][2], prob=T)
+  pdz$var <- z
+  colnames(pdz) <- c("value","yhat","var")
+  pd <- rbind(pd, pdz)
+}
+write.csv(pd,  here(paste0("Results/RF-partialdependence-", response, "-occurrence-BALANCED.csv")), row.names=F)
+```
+
+```{r fit SB RF model Weighted, eval=F}
+response <- "agentSB"
+vars <- c("BA.PIEN", "QMD.PIEN", "propBA.PIEN")
+
+datBB.c <- df[df$focalhost=="Any",]
+
+splitit <- initial_split(datBB.c, prop=.7, strata=response) # partition data to create test and training datasets stratified by the response class
+datz.train <- training(splitit)
+datz.test <- testing(splitit)
+datz.train.cv <- vfold_cv(datz.train, strata=response, v=10) # partition training data to allow for cross validation (again stratified by the response class) for optimization of model hyperparameters
+
+# set formula
+BBoccurrence_recipe <- recipe(formula(paste(response, "~", paste(vars, collapse = " + "))), datz.train) 
+# set sample weights
+wts <- 1/(table(datBB.c[,response])/ max(table(datBB.c[,response])))
+wts <- wts/sum(wts)
+
+# set model
+rf_model <- rand_forest() %>% set_args( trees=tune(), min_n=tune()) %>% set_engine("ranger", importance = "permutation", seed=913, probability=T, class.weights=wts, num.threads = cores) %>% set_mode("classification")  
+
+# set the workflow
+rf_workflow <- workflow() %>% add_recipe(BBoccurrence_recipe) %>% add_model(rf_model)
+
+# tune model
+tgrid <- expand.grid(trees = c(100,500), min_n=c(10, 50, 100))
+rf_tune_results <- rf_workflow %>% tune_grid(resamples = datz.train.cv,  grid = tgrid, metrics = metric_set(roc_auc, sens, spec))
+
+tuneres <- rf_tune_results %>% collect_metrics() # collect metrics
+
+param_best<- rf_tune_results %>% select_best(metric = "roc_auc") # select best hyperparameters
+
+# Use backward selection to identify important variables
+#dfo.vsurf <- VSURF::VSURF(datz.train[,vars], factor(datz.train[,response]), RFimplem="ranger", parallel=T, ntree=param_best$trees, min.node.size=param_best$min_n)
+#registerDoSEQ()
+#vars.final <- unique(c(vars[dfo.vsurf$varselect.pred]))
+vars.final <- vars
+BBoccurrence_recipe_final <- recipe(formula(paste(response, "~", paste(vars.final, collapse = " + "))), data=datBB.c)
+  
+rf_model_final <- rand_forest() %>% set_args(trees=param_best$trees, min_n=param_best$min_n, splitrule="gini") %>% set_engine("ranger", importance = "permutation", probability=T, class.weights=wts, num.threads = cores) %>% set_mode("classification") 
+
+rf_workflow_final <- workflow() %>% add_recipe(BBoccurrence_recipe_final) %>% add_model(rf_model_final)
+rf_workflow_final_fit<- rf_workflow_final %>% last_fit(splitit, metrics=metric_set(roc_auc, sens, spec)) #emulates the process where, after determining the best model, the final fit on the entire training set is needed and is then evaluated on the test set. 
+test_performance <- rf_workflow_final_fit %>% collect_metrics()
+write.csv(test_performance, here(paste0("Results/RF-testperformance-", response, "-occurrence-WEIGHTED.csv")), row.names=F)
+  
+# generate a confusion matrix for test set
+test_predictions <- rf_workflow_final_fit %>% collect_predictions()
+confusion <- test_predictions %>% conf_mat(response,estimate = .pred_class)
+
+write.csv(confusion$table, here(paste0("Results/RF-confusiontable-", response, "-occurrence-WEIGHTED.csv")), row.names=F)
+
+# variable importance
+final_model <- fit(rf_workflow_final, data=datz.train)
+ranger_obj <- pull_workflow_fit(final_model)$fit
+
+# generate predictions for entire dataset
+x <- datBB.c$PLT_CN
+x <- cbind(x, predict(ranger_obj, datBB.c)$predictions[,2])
+colnames(x) <- c("PLT_CN", "SBpred")
+write.csv(x, here(paste0("Results/RF-pred-", response, "-occurrence-WEIGHTED.csv")), row.names=F)
+          
+x <- as.data.frame(ranger_obj$variable.importance)
+write.csv(x, here(paste0("Results/RF-vimp-", response, "-occurrence-WEIGHTED.csv")), row.names=F)
+          
+# partial dependence
+pd <- NULL
+for(z in vars.final){
+  pdz <- partial(ranger_obj, train=datz.train, pred.var=z, which.class=strsplit(response, split="agent")[[1]][2], prob=T)
+  pdz$var <- z
+  colnames(pdz) <- c("value","yhat","var")
+  pd <- rbind(pd, pdz)
+}
+write.csv(pd,  here(paste0("Results/RF-partialdependence-", response, "-occurrence-WEIGHTED.csv")), row.names=F)
+```
+
+```{r fit WBBB RF model SMOTE, eval=F}
+response <- "agentWBBB"
+vars <- c("BA.ABLA", "QMD.ABLA", "propBA.ABLA")
+datBB.c <- df[df$focalhost=="Any",]
+
+splitit <- initial_split(datBB.c, prop=.7, strata=response) # partition data to create test and training datasets stratified by the response class
+datz.train <- training(splitit)
+datz.test <- testing(splitit)
+datz.train.cv <- vfold_cv(datz.train, strata=response, v=10) # partition training data to allow for cross validation (again stratified by the response class) for optimization of model hyperparameters
+
+# set formula
+BBoccurrence_recipe <- recipe(formula(paste(response, "~", paste(vars, collapse = " + "))), datz.train) %>% step_smote(response) # set model preprocessing to include SMOTE to simulate more presence cases
+
+# set sample weights
+wts <- 1/(table(datBB.c[,response])/ max(table(datBB.c[,response])))
+wts <- wts/sum(wts)
+
+# set model
+rf_model <- rand_forest() %>% set_args( trees=tune(), min_n=tune()) %>% set_engine("ranger", importance = "permutation", seed=913, probability=T, num.threads = cores) %>% set_mode("classification")  
+
+# set the workflow
+rf_workflow <- workflow() %>% add_recipe(BBoccurrence_recipe) %>% add_model(rf_model)
+
+# tune model
+tgrid <- expand.grid(trees = c(100,500), min_n=c(10, 50, 100))
+rf_tune_results <- rf_workflow %>% tune_grid(resamples = datz.train.cv,  grid = tgrid, metrics = metric_set(roc_auc, sens, spec))
+
+tuneres <- rf_tune_results %>% collect_metrics() # collect metrics
+
+param_best<- rf_tune_results %>% select_best(metric = "roc_auc") # select best hyperparameters
+
+# Use backward selection to identify important variables
+#dfo.vsurf <- VSURF::VSURF(datz.train[,vars], factor(datz.train[,response]), RFimplem="ranger", parallel=T, ntree=param_best$trees, min.node.size=param_best$min_n)
+#registerDoSEQ()
+#vars.final <- unique(c(vars[dfo.vsurf$varselect.pred]))
+vars.final <- vars
+BBoccurrence_recipe_final <- recipe(formula(paste(response, "~", paste(vars.final, collapse = " + "))), data=datBB.c) %>% step_smote(response) 
+  
+rf_model_final <- rand_forest() %>% set_args(trees=param_best$trees, min_n=param_best$min_n, splitrule="gini") %>% set_engine("ranger", importance = "permutation", probability=T, num.threads = cores) %>% set_mode("classification") 
+
+rf_workflow_final <- workflow() %>% add_recipe(BBoccurrence_recipe_final) %>% add_model(rf_model_final)
+rf_workflow_final_fit<- rf_workflow_final %>% last_fit(splitit, metrics=metric_set(roc_auc, sens, spec)) #emulates the process where, after determining the best model, the final fit on the entire training set is needed and is then evaluated on the test set. 
+test_performance <- rf_workflow_final_fit %>% collect_metrics()
+write.csv(test_performance, here(paste0("Results/RF-testperformance-", response, "-occurrence-SMOTE.csv")), row.names=F)
+  
+# generate a confusion matrix for test set
+test_predictions <- rf_workflow_final_fit %>% collect_predictions()
+confusion <- test_predictions %>% conf_mat(response,estimate = .pred_class)
+
+write.csv(confusion$table, here(paste0("Results/RF-confusiontable-", response, "-occurrence-SMOTE.csv")), row.names=F)
+
+# variable importance
+final_model <- fit(rf_workflow_final, data=datz.train)
+ranger_obj <- pull_workflow_fit(final_model)$fit
+
+# generate predictions for entire dataset
+x <- datBB.c$PLT_CN
+x <- cbind(x, predict(ranger_obj, datBB.c)$predictions[,2])
+colnames(x) <- c("PLT_CN", "SBpred")
+write.csv(x, here(paste0("Results/RF-pred-", response, "-occurrence-SMOTE.csv")), row.names=F)
+          
+x <- as.data.frame(ranger_obj$variable.importance)
+write.csv(x, here(paste0("Results/RF-vimp-", response, "-occurrence-SMOTE.csv")), row.names=F)
+          
+# partial dependence
+pd <- NULL
+for(z in vars.final){
+  pdz <- partial(ranger_obj, train=datz.train, pred.var=z, which.class=strsplit(response, split="agent")[[1]][2], prob=T)
+  pdz$var <- z
+  colnames(pdz) <- c("value","yhat","var")
+  pd <- rbind(pd, pdz)
+}
+write.csv(pd,  here(paste0("Results/RF-partialdependence-", response, "-occurrence-SMOTE.csv")), row.names=F)
+```
+
+```{r fit WBBB RF model Balanced, eval=F}
+response <- "agentWBBB"
+vars <- c("BA.ABLA", "QMD.ABLA", "propBA.ABLA")
+datBB.c <- df[df$focalhost=="Any",]
+
+splitit <- initial_split(datBB.c, prop=.7, strata=response) # partition data to create test and training datasets stratified by the response class
+datz.train <- training(splitit)
+datz.test <- testing(splitit)
+datz.train.cv <- vfold_cv(datz.train, strata=response, v=10) # partition training data to allow for cross validation (again stratified by the response class) for optimization of model hyperparameters
+
+# set formula
+BBoccurrence_recipe <- recipe(formula(paste(response, "~", paste(vars, collapse = " + "))), datz.train) 
+# set sample weights
+wts <- 1/(table(datBB.c[,response])/ max(table(datBB.c[,response])))
+wts <- wts/sum(wts)
+
+# set model
+rf_model <- rand_forest() %>% set_args( trees=tune(), min_n=tune()) %>% set_engine("ranger", importance = "permutation", seed=913, probability=T, sample.fraction=wts, num.threads = cores) %>% set_mode("classification")  
+
+# set the workflow
+rf_workflow <- workflow() %>% add_recipe(BBoccurrence_recipe) %>% add_model(rf_model)
+
+# tune model
+tgrid <- expand.grid(trees = c(100,500), min_n=c(10, 50, 100))
+rf_tune_results <- rf_workflow %>% tune_grid(resamples = datz.train.cv,  grid = tgrid, metrics = metric_set(roc_auc, sens, spec))
+
+tuneres <- rf_tune_results %>% collect_metrics() # collect metrics
+
+param_best<- rf_tune_results %>% select_best(metric = "roc_auc") # select best hyperparameters
+
+# Use backward selection to identify important variables
+#dfo.vsurf <- VSURF::VSURF(datz.train[,vars], factor(datz.train[,response]), RFimplem="ranger", parallel=T, ntree=param_best$trees, min.node.size=param_best$min_n)
+#registerDoSEQ()
+#vars.final <- unique(c(vars[dfo.vsurf$varselect.pred]))
+vars.final <- vars
+BBoccurrence_recipe_final <- recipe(formula(paste(response, "~", paste(vars.final, collapse = " + "))), data=datBB.c)
+  
+rf_model_final <- rand_forest() %>% set_args(trees=param_best$trees, min_n=param_best$min_n, splitrule="gini") %>% set_engine("ranger", importance = "permutation", probability=T, sample.fraction=wts, num.threads = cores) %>% set_mode("classification") 
+
+rf_workflow_final <- workflow() %>% add_recipe(BBoccurrence_recipe_final) %>% add_model(rf_model_final)
+rf_workflow_final_fit<- rf_workflow_final %>% last_fit(splitit, metrics=metric_set(roc_auc, sens, spec)) #emulates the process where, after determining the best model, the final fit on the entire training set is needed and is then evaluated on the test set. 
+test_performance <- rf_workflow_final_fit %>% collect_metrics()
+write.csv(test_performance, here(paste0("Results/RF-testperformance-", response, "-occurrence-BALANCED.csv")), row.names=F)
+  
+# generate a confusion matrix for test set
+test_predictions <- rf_workflow_final_fit %>% collect_predictions()
+confusion <- test_predictions %>% conf_mat(response,estimate = .pred_class)
+
+write.csv(confusion$table, here(paste0("Results/RF-confusiontable-", response, "-occurrence-BALANCED.csv")), row.names=F)
+
+# variable importance
+final_model <- fit(rf_workflow_final, data=datz.train)
+ranger_obj <- pull_workflow_fit(final_model)$fit
+
+# generate predictions for entire dataset
+x <- datBB.c$PLT_CN
+x <- cbind(x, predict(ranger_obj, datBB.c)$predictions[,2])
+colnames(x) <- c("PLT_CN", "SBpred")
+write.csv(x, here(paste0("Results/RF-pred-", response, "-occurrence-BALANCED.csv")), row.names=F)
+          
+x <- as.data.frame(ranger_obj$variable.importance)
+write.csv(x, here(paste0("Results/RF-vimp-", response, "-occurrence-BALANCED.csv")), row.names=F)
+          
+# partial dependence
+pd <- NULL
+for(z in vars.final){
+  pdz <- partial(ranger_obj, train=datz.train, pred.var=z, which.class=strsplit(response, split="agent")[[1]][2], prob=T)
+  pdz$var <- z
+  colnames(pdz) <- c("value","yhat","var")
+  pd <- rbind(pd, pdz)
+}
+write.csv(pd,  here(paste0("Results/RF-partialdependence-", response, "-occurrence-BALANCED.csv")), row.names=F)
+```
+
+```{r fit WBBB RF model Weighted, eval=F}
+response <- "agentWBBB"
+vars <- c("BA.ABLA", "QMD.ABLA", "propBA.ABLA")
+datBB.c <- df[df$focalhost=="Any",]
+
+splitit <- initial_split(datBB.c, prop=.7, strata=response) # partition data to create test and training datasets stratified by the response class
+datz.train <- training(splitit)
+datz.test <- testing(splitit)
+datz.train.cv <- vfold_cv(datz.train, strata=response, v=10) # partition training data to allow for cross validation (again stratified by the response class) for optimization of model hyperparameters
+
+# set formula
+BBoccurrence_recipe <- recipe(formula(paste(response, "~", paste(vars, collapse = " + "))), datz.train) 
+# set sample weights
+wts <- 1/(table(datBB.c[,response])/ max(table(datBB.c[,response])))
+wts <- wts/sum(wts)
+
+# set model
+rf_model <- rand_forest() %>% set_args( trees=tune(), min_n=tune()) %>% set_engine("ranger", importance = "permutation", seed=913, probability=T, class.weights=wts, num.threads = cores) %>% set_mode("classification")  
+
+# set the workflow
+rf_workflow <- workflow() %>% add_recipe(BBoccurrence_recipe) %>% add_model(rf_model)
+
+# tune model
+tgrid <- expand.grid(trees = c(100,500), min_n=c(10, 50, 100))
+rf_tune_results <- rf_workflow %>% tune_grid(resamples = datz.train.cv,  grid = tgrid, metrics = metric_set(roc_auc, sens, spec))
+
+tuneres <- rf_tune_results %>% collect_metrics() # collect metrics
+
+param_best<- rf_tune_results %>% select_best(metric = "roc_auc") # select best hyperparameters
+
+# Use backward selection to identify important variables
+#dfo.vsurf <- VSURF::VSURF(datz.train[,vars], factor(datz.train[,response]), RFimplem="ranger", parallel=T, ntree=param_best$trees, min.node.size=param_best$min_n)
+#registerDoSEQ()
+#vars.final <- unique(c(vars[dfo.vsurf$varselect.pred]))
+vars.final <- vars
+BBoccurrence_recipe_final <- recipe(formula(paste(response, "~", paste(vars.final, collapse = " + "))), data=datBB.c)
+  
+rf_model_final <- rand_forest() %>% set_args(trees=param_best$trees, min_n=param_best$min_n, splitrule="gini") %>% set_engine("ranger", importance = "permutation", probability=T, class.weights=wts, num.threads = cores) %>% set_mode("classification") 
+
+rf_workflow_final <- workflow() %>% add_recipe(BBoccurrence_recipe_final) %>% add_model(rf_model_final)
+rf_workflow_final_fit<- rf_workflow_final %>% last_fit(splitit, metrics=metric_set(roc_auc, sens, spec)) #emulates the process where, after determining the best model, the final fit on the entire training set is needed and is then evaluated on the test set. 
+test_performance <- rf_workflow_final_fit %>% collect_metrics()
+write.csv(test_performance, here(paste0("Results/RF-testperformance-", response, "-occurrence-WEIGHTED.csv")), row.names=F)
+  
+# generate a confusion matrix for test set
+test_predictions <- rf_workflow_final_fit %>% collect_predictions()
+confusion <- test_predictions %>% conf_mat(response,estimate = .pred_class)
+
+write.csv(confusion$table, here(paste0("Results/RF-confusiontable-", response, "-occurrence-WEIGHTED.csv")), row.names=F)
+
+# variable importance
+final_model <- fit(rf_workflow_final, data=datz.train)
+ranger_obj <- pull_workflow_fit(final_model)$fit
+
+# generate predictions for entire dataset
+x <- datBB.c$PLT_CN
+x <- cbind(x, predict(ranger_obj, datBB.c)$predictions[,2])
+colnames(x) <- c("PLT_CN", "SBpred")
+write.csv(x, here(paste0("Results/RF-pred-", response, "-occurrence-WEIGHTED.csv")), row.names=F)
+          
+x <- as.data.frame(ranger_obj$variable.importance)
+write.csv(x, here(paste0("Results/RF-vimp-", response, "-occurrence-WEIGHTED.csv")), row.names=F)
+          
+# partial dependence
+pd <- NULL
+for(z in vars.final){
+  pdz <- partial(ranger_obj, train=datz.train, pred.var=z, which.class=strsplit(response, split="agent")[[1]][2], prob=T)
+  pdz$var <- z
+  colnames(pdz) <- c("value","yhat","var")
+  pd <- rbind(pd, pdz)
+}
+write.csv(pd,  here(paste0("Results/RF-partialdependence-", response, "-occurrence-WEIGHTED.csv")), row.names=F)
+```
+
+```{r determine suitable stands}
+MPBpred <- read.csv(here("Results/RF-pred-agentMPB-occurrence-SMOTE.csv"))
+SBpred <- read.csv(here("Results/RF-pred-agentSB-occurrence-SMOTE.csv"))
+WBBBpred <- read.csv(here("Results/RF-pred-agentWBBB-occurrence-SMOTE.csv"))
+
+BBpred <- merge(merge(MPBpred, SBpred, by="PLT_CN"), WBBBpred, by="PLT_CN")
+colnames(BBpred) <- c("PLT_CN", "MPBpred", "SBpred", "WBBBpred")
+
+threshold <-0.5
+BBpred$MPBsuitable <- ifelse(BBpred$MPBpred > threshold, "MPB", "absent")
+BBpred$SBsuitable <- ifelse(BBpred$SBpred > threshold, "SB", "absent")
+BBpred$WBBBsuitable <- ifelse(BBpred$WBBBpred >threshold, "WBBB", "absent")
+
+BBpred$agentsuitable <-  do.call(paste, c(BBpred[c("SBsuitable", "MPBsuitable", "WBBBsuitable")],sep="-"))
+BBpred$agentsuitable <- factor(BBpred$agentsuitable, levels=c("absent-absent-absent","absent-MPB-absent","SB-absent-absent", "SB-MPB-absent", "absent-absent-WBBB", "SB-absent-WBBB", "absent-MPB-WBBB", "SB-MPB-WBBB"), labels=c("none", "MPB", "SB", "MPB+SB", "WBBB", "SB+WBBB", "MPB+WBBB", "MPB+SB+WBBB"))
+
+BBpred$suitablehosts <- factor(BBpred$agentsuitable, levels=c("none", "MPB", "SB", "WBBB", "MPB+SB",  "MPB+WBBB", "SB+WBBB",  "MPB+SB+WBBB"), ordered=T)
+
+```
+
+# Results
+## Is co-occurrence of multiple hosts common?
+```{r describe frequency of hosts and agents, eval=T}
+## Hosts
+hosts <- df[!df$focalhost=="Any",] %>% group_by(focalhost) %>% summarise(n = n())%>%mutate(freq = n / sum(n))
+hostgroups <- df[df$focalhost=="Any",] %>% group_by(hosts) %>% summarise(n = n())%>%mutate(freq = n / sum(n))
+hostgroups$hosts <- factor(hostgroups$hosts, levels=hostgroups$hosts, labels=c("PICO", "PIEN", "ABLA", "PICO\n&\nPIEN", "PICO\n&\nABLA", "PIEN\n&\nABLA", "PICO,\nPIEN,\n&\nABLA"))
+
+
+nhosts <- df[df$focalhost=="Any",] %>% group_by(nhosts) %>% summarise(n = n())%>%mutate(freq = n / sum(n))
+
+
+## Affected hosts
+affectedhosts <- df[!df$focalhost=="Any",] %>% group_by(focalhost, affected) %>% summarise(n = n())%>% mutate(freq = prop.table(n))
+affectednhosts <- df[df$focalhost=="Any",] %>% group_by(nhosts, affected) %>% summarise(n = n())%>% mutate(freq = prop.table(n))
+affectednhosts<- affectednhosts[affectednhosts$affected=="affected", ]
+affectednhosts<- affectednhosts[order(affectednhosts$freq, decreasing=T),]
+
+affectedhostgroups <- df[df$focalhost=="Any",] %>% group_by(hosts, affected) %>% summarise(n = n())%>% mutate(freq = prop.table(n))
+affectedhostgroups<- affectedhostgroups[affectedhostgroups$affected=="affected", ]
+affectedhostgroups<- affectedhostgroups[order(affectedhostgroups$freq, decreasing=T),]
+
+## Agents given host presence
+agents <- df[!df$focalhost=="Any",] %>% group_by(focalagent, affected) %>% summarise(n = n())%>%
+  mutate(freq = n / sum(n))
+PICOwMPB <- as.numeric(round(agents[agents$focalagent=="MPB" & agents$affected=="affected", "freq"]*100, 0))
+PIENwSB <- as.numeric(round(agents[agents$focalagent=="SB" & agents$affected=="affected", "freq"]*100, 0))
+ABLAwWBBB<- as.numeric(round(agents[agents$focalagent=="WBBB" & agents$affected=="affected", "freq"]*100, 0))
+
+## Agents given presence of any agent
+agentso <- df[!df$focalhost=="Any" & df$affected=="affected",] %>% group_by(focalagent) %>% summarise(n = n())%>%
+  mutate(freq = n / sum(n))
+
+agentsbyhosts <- df[!df$focalhost=="Any",] %>% group_by(focalagent, affected) %>% summarise(n = n())%>% mutate(freq = prop.table(n))
+
+p1 <- ggplot(df[df$focalhost=="Any",], aes(x=hosts, fill=interaction(hosts, affected))) + geom_bar(width=0.75, stat="count", col="black")+ylab("number of plots")+theme(axis.text.x = element_text(angle = 45, hjust=1,vjust=1),legend.position = "none", legend.title=element_blank())+scale_fill_manual(values=c(c("#8c510a", "#bf812d", "#dfc27d", "#80cdc1", "#35978f", "#01665e", "#003c30"), adjust_transparency(c("#8c510a", "#bf812d", "#dfc27d", "#80cdc1", "#35978f", "#01665e", "#003c30"), alpha=0.5)))
+
+Fig.file <- here("Results/Figures/Figure-PresencebyHostcombos.jpg")
+jpeg(Fig.file, width=fig.width1.5,height=2.5,units="in", res=300)
+p1
+whatever <- dev.off()
+```
+
+```{r}
+gghostgroups <- ggplot(hostgroups, aes(x=hosts, y=freq, fill=hosts))+geom_bar(stat="identity")+scale_fill_manual(values=c("#8c510a", "#bf812d", "#dfc27d", "#80cdc1", "#35978f", "#01665e", "#003c30"))+theme(legend.position="none")+xlab("")+ylab("frequency")
+
+ggsave( here("Results/Figures/FigureHostFreq.jpg"), plot=gghostgroups,   width=fig.width1,height=fig.width1*0.75,units="in")
+```
+
+Yes, 66% (n=5,850) FIA plots had at least two host species present. Subalpine fir was most likely to occur with other hosts (50% of stands), followed by Engelmann spruce (45% stands), and lodgepole pine (36% of stands) (Fig. \@ref(fig:FigHostFreq)).
+
+```{r FigHostFreq, fig.cap = ".", out.width = "322.56pt"}
+knitr::include_graphics( here("Results/Figures/FigureHostFreq.jpg"))
+```
+
+## Is co-occurrence of the stands conditions suitable for multiple bark beetle species common?
+
+20% of stands were suitable for more than one bark beetle species. Conditions suitable for WBBB were most likely to co-occur with conditions suitable for another bark beetle (17% of stands)
+
+```{r determine co-occurrence of suitable stands}
+bbo.dat<- merge(BBpred, df, id.vars="PLT_CN", all=T)
+bbo.dat <- bbo.dat[bbo.dat$focalagent=="Any",]
+
+suitablehostgroups <- bbo.dat[bbo.dat$focalagent=="Any",]%>% group_by(suitablehosts) %>% summarise(n = n())%>%mutate(freq = n / sum(n))
+
+bbo.dat$hostsFPshort<- bbo.dat$hosts
+bbo.dat$hostsFPshort <- factor(bbo.dat$hosts, levels=levels(bbo.dat$hosts), labels=c("PICO", "PIEN", "ABLA", "PICO\n&\nPIEN", "PICO\n&\nABLA", "PIEN\n&\nABLA", "PICO,\nPIEN,\n&\nABLA"))
+bbo.dat$agentsFplongrev <- bbo.dat$agentsF
+bbo.dat$agentsFplongrev <- factor(bbo.dat$agentsFplongrev, levels=rev(levels( bbo.dat$agentsFplong)))
+
+bbo.sub <- bbo.dat[bbo.dat$focalhost=="Any",]
+bbo.sub <- bbo.dat[!bbo.dat$suitablehosts=="none",]
+
+bbo.sub$suitablehostsP <- factor(bbo.sub$suitablehosts, levels=levels(bbo.sub$suitablehosts)[-1], labels=c("PICO", "PIEN", "ABLA", "PICO\n&\nPIEN", "PICO\n&\nABLA", "PIEN\n&\nABLA", "PICO,\nPIEN,\n&\nABLA"))
+
+ggfreq <- ggplot(bbo.sub, aes(x=suitablehostsP,fill=suitablehostsP))+geom_bar()+theme(legend.title = element_blank())+xlab("hosts")+scale_fill_manual(values=c("#8c510a", "#bf812d", "#dfc27d", "#80cdc1", "#35978f", "#01665e", "#003c30"))+theme(legend.position="none")
+
+ggsave( here("Results/Figures/FigureSuitable.jpg"), plot=ggfreq,width=fig.width1,height=fig.width1*0.75,units="in")
+```
+
+(Fig. \@ref(fig:FigureSuitable)).
+
+```{r FigureSuitable, fig.cap = ".", out.width = "322.56pt"}
+knitr::include_graphics( here("Results/Figures/FigureSuitable.jpg"))
+```
+
+
+## Is occurrence or severity cumulative bark beetle mortality greater in stands with multiple hosts?
+
+```{r occurrence by suitable hosts}
+
+dfpred <- merge(BBpred, df, id.vars="PLT_CN", all=T)
+dfpred$suitablehosts <- factor(dfpred$suitablehosts, levels=levels(dfpred$suitablehosts)[-1], labels=c("PICO", "PIEN", "ABLA", "PICO+PIEN", "PICO+ABLA", "PIEN+ABLA", "PICO+PIEN+ABLA"))
+mpb <- as.data.frame(table(dfpred[dfpred$focalagent=="MPB","affected"], dfpred[dfpred$focalagent=="MPB","suitablehosts"]))
+sb <- as.data.frame(table(dfpred[dfpred$focalagent=="SB","affected"], dfpred[dfpred$focalagent=="SB","suitablehosts"]))
+wbbb <- as.data.frame(table(dfpred[dfpred$focalagent=="WBBB","affected"], dfpred[dfpred$focalagent=="WBBB","suitablehosts"]))
+any<- as.data.frame(table(dfpred[dfpred$focalagent=="Any","affected"], dfpred[dfpred$focalagent=="Any","suitablehosts"]))
+
+results <- NULL
+for(j in c("PICO+PIEN",  "PICO+ABLA", "PIEN+ABLA",  "PICO+PIEN+ABLA")){
+  anyj <- any[any$Var2==j,]
+  mpbj <- mpb[mpb$Var2==j,]
+  sbj <- sb[sb$Var2==j,]
+  wbbbj <- wbbb[wbbb$Var2==j,]
+  
+  x <- prop.test(x=c(mpbj[1,3],anyj[1,3]), n=c(mpbj[1,3]+mpbj[2,3], anyj[1,3]+anyj[2,3]))
+
+  res <- data.frame(suitablehosts=NA, barkbeetle=NA, X=NA, p=NA, prop1=NA, prop2 =NA, lower=NA, upper=NA)
+  res$suitablehosts <-j
+  res$barkbeetle <- "MPB"
+  res$X <- x$statistic
+  res$p <- x$p.value
+  res$prop1 <- x$estimate[1]
+  res$prop2 <- x$estimate[2]
+  res$lower <- x$conf.in[1]
+  res$upper <- x$conf.in[2]
+  x <-NULL
+  results <- rbind(results, res)
+    
+  x <- prop.test(x=c(sbj[1,3],anyj[1,3]), n=c(sbj[1,3]+sbj[2,3], anyj[1,3]+anyj[2,3]))
+
+  res <- data.frame(suitablehosts=NA, barkbeetle=NA, X=NA, p=NA, prop1=NA, prop2 =NA, lower=NA, upper=NA)
+  res$suitablehosts <-j
+  res$barkbeetle <- "SB"
+  res$X <- x$statistic
+  res$p <- x$p.value
+  res$prop1 <- x$estimate[1]
+  res$prop2 <- x$estimate[2]
+  res$lower <- x$conf.in[1]
+  res$upper <- x$conf.in[2]
+  x <-NULL
+  results <- rbind(results, res)
+  
+   x <- prop.test(x=c(wbbbj[1,3],anyj[1,3]), n=c(wbbbj[1,3]+wbbbj[2,3], anyj[1,3]+anyj[2,3]), alternative="less")
+
+  res <- data.frame(suitablehosts=NA, barkbeetle=NA, X=NA, p=NA, prop1=NA, prop2 =NA, lower=NA, upper=NA)
+  res$suitablehosts <-j
+  res$barkbeetle <- "WBBB"
+  res$X <- x$statistic
+  res$p <- x$p.value
+  res$prop1 <- x$estimate[1]
+  res$prop2 <- x$estimate[2]
+  res$lower <- x$conf.in[1]
+  res$upper <- x$conf.in[2]
+  x <-NULL
+  results <- rbind(results, res)
+}
+
+results$p <- round(results$p,3)
+
+x <- dfpred[is.na(dfpred$suitablehosts)==FALSE,]
+x <- x[x$suitablehosts %in% c("PICO+PIEN",  "PICO+ABLA", "PIEN+ABLA",  "PICO+PIEN+ABLA"),]
+x[x$suitablehosts == "PICO+PIEN" & x$focalagent=="WBBB","affected"]<- 0
+x[x$suitablehosts == "PICO+ABLA" & x$focalagent=="SB","affected"]<- 0
+x[x$suitablehosts == "PIEN+ABLA" & x$focalagent=="MPB","affected"]<- 0
+
+xx <- x %>% group_by(suitablehosts,focalagent) %>% count(affected)
+xxx <- x %>% group_by(suitablehosts) %>% count()
+
+xxxx <- merge(xx, xxx, by="suitablehosts")
+xxxx$prop <- xxxx$n.x/xxxx$n.y
+xxxx <- xxxx[xxxx$affected=="affected",]
+xxxx <- xxxx[,c(1,2,6)]
+colnames(xxxx) <- c("suitablehosts", "barkbeetle", "prop")
+
+resultsx <- merge(results, xxxx, id.vars=c("suitablehosts", "barkbeetle"), all=T)
+resultsx$barkbeetle <- factor(resultsx$barkbeetle, levels=c("MPB", 'SB', "WBBB", "Any"), ordered=T)
+resultsx <- resultsx[is.na(resultsx$prop)==FALSE,]
+resultsx$suitablehosts <- factor(resultsx$suitablehosts, levels=c("PICO+PIEN",  "PICO+ABLA", "PIEN+ABLA",  "PICO+PIEN+ABLA"), labels=c("PICO & PIEN",  "PICO & ABLA", "PIEN & ABLA",  "PICO, PIEN, & ABLA"), ordered=T)
+resultsx$pplot <- ifelse(resultsx$p<0.05, "*", "")
+resultsx$pplot[is.na(resultsx$pplot) ==TRUE] <- ""
+
+
+ggoccurrence <- ggplot(resultsx, aes(x=barkbeetle,y=prop, fill=barkbeetle))+geom_bar(stat="identity")+theme(legend.title = element_blank())+geom_text(aes(label=pplot), vjust=-0.25,size=6)+facet_grid(.~suitablehosts, scales="free_x", space="free_x")+xlab("bark beetle species")+scale_fill_manual(values=c(p1col[1:3], gray(0.3)))+theme(legend.position = "none")+ylab("proportion of plots")
+
+ggsave( here("Results/Figures/FigureOccurrencebySuitablehosts.jpg"), plot=ggoccurrence,  width=fig.width2, height=fig.width1*0.66,units="in")
+
+```
+
+Given suitable stand conditions for multiple agents, the probability of occurrence  of any agent was significantly greater than the probability of a single agent \@ref(fig:FigureSuitable).
+```{r FigOccurrence, fig.cap = "Severity",  out.width = "504.8pt"}
+knitr::include_graphics( here("Results/Figures/FigureOccurrencebySuitablehosts.jpg"))
+```
+
+Given suitable stand conditions for multiple agents, is the severity of cumulative bark beetle-driven tree mortality greater in stands with multiple hosts?
+
+In stands suitable for all three hosts, cumulative mortality was significantly greater than mortality by a single agent. \@ref(fig:FigSeverity). When stand conditions were suitable for only two bark beetles, the severity of cumulative tree mortality was driven by the most common agent (MPB > SB > WBBB) and was not significantly different than the cummualtive mortality.
+
+```{r severity by suitable hosts}
+dfpred <- merge(BBpred, df, id.vars="PLT_CN", all=T)
+dfpred$suitablehosts <- factor(dfpred$suitablehosts, levels=levels(dfpred$suitablehosts)[-1], labels=c("PICO", "PIEN", "ABLA", "PICO+PIEN", "PICO+ABLA", "PIEN+ABLA", "PICO+PIEN+ABLA"))
+
+mpb <- dfpred[dfpred$focalagent=="MPB" & dfpred$suitablehosts %in% c("PICO+PIEN",  "PICO+ABLA",   "PICO+PIEN+ABLA"), ]
+sb <- as.data.frame(table(dfpred[dfpred$focalagent=="SB","affected"], dfpred[dfpred$focalagent=="SB","suitablehosts"]))
+wbbb <- as.data.frame(table(dfpred[dfpred$focalagent=="WBBB","affected"], dfpred[dfpred$focalagent=="WBBB","suitablehosts"]))
+any<- as.data.frame(table(dfpred[dfpred$focalagent=="Any","affected"], dfpred[dfpred$focalagent=="Any","suitablehosts"]))
+
+
+dfpred <- dfpred[dfpred$suitablehosts %in% c("PICO+PIEN",  "PICO+ABLA", "PIEN+ABLA",  "PICO+PIEN+ABLA"), ]
+
+dfpred <- dfpred[dfpred$affected01=="affected",]
+
+
+results <- NULL
+for(j in c("PICO+PIEN",  "PICO+ABLA", "PIEN+ABLA",  "PICO+PIEN+ABLA")){
+
+  x <- kruskal.test(propTBA~focalagent, data=dfpred[dfpred$suitablehosts ==j  & dfpred$focalagent %in% c('Any', 'MPB'),])
+  
+  res <- data.frame(suitablehosts=NA, barkbeetle=NA, X=NA, p=NA)
+  res$suitablehosts <-j
+  res$barkbeetle <- "MPB"
+  res$X <- x$statistic
+  res$p <- x$p.value
+  x <-NULL
+  results <- rbind(results, res)
+    
+ 
+    x <- kruskal.test(propTBA~focalagent, data=dfpred[dfpred$suitablehosts ==j  & dfpred$focalagent %in% c('Any', 'SB'),])
+  
+  res <- data.frame(suitablehosts=NA, barkbeetle=NA, X=NA, p=NA)
+  res$suitablehosts <-j
+  res$barkbeetle <- "SB"
+  res$X <- x$statistic
+  res$p <- x$p.value
+  x <-NULL
+  results <- rbind(results, res)
+  
+      x <- kruskal.test(propTBA~focalagent, data=dfpred[dfpred$suitablehosts ==j  & dfpred$focalagent %in% c('Any', 'WBBB'),])
+  
+  res <- data.frame(suitablehosts=NA, barkbeetle=NA, X=NA, p=NA)
+  res$suitablehosts <-j
+  res$barkbeetle <- "WBBB"
+  res$X <- x$statistic
+  res$p <- x$p.value
+  x <-NULL
+  results <- rbind(results, res)
+  
+}
+
+results$pplot <- ifelse(results$p<0.05, "*", NA)
+
+dfpred$pplot <- NA
+for(j in c("PICO+PIEN",  "PICO+ABLA", "PIEN+ABLA",  "PICO+PIEN+ABLA")){
+  
+  x <- dfpred[dfpred$suitablehosts ==j  & dfpred$focalagent == 'MPB',]
+  xplt <- x[x$propTBA==max(x$propTBA), "PLT_CN"][1]
+  dfpred[dfpred$suitablehosts ==j  & dfpred$focalagent == 'MPB' &dfpred$PLT_CN==xplt, ]$pplot <- results[results$suitablehosts==j & results$barkbeetle=='MPB', "pplot"]
+  
+    x <- dfpred[dfpred$suitablehosts ==j  & dfpred$focalagent == 'SB',]
+  xplt <- x[x$propTBA==max(x$propTBA), "PLT_CN"][1]
+  dfpred[dfpred$suitablehosts ==j  & dfpred$focalagent == 'SB' &dfpred$PLT_CN==xplt, ]$pplot <- results[results$suitablehosts==j & results$barkbeetle=='SB', "pplot"]
+  
+    x <- dfpred[dfpred$suitablehosts ==j  & dfpred$focalagent == 'WBBB',]
+  xplt <- x[x$propTBA==max(x$propTBA), "PLT_CN"][1]
+  dfpred[dfpred$suitablehosts ==j  & dfpred$focalagent == 'WBBB' & dfpred$PLT_CN==xplt, ]$pplot <- results[results$suitablehosts==j & results$barkbeetle=='WBBB', "pplot"]
+    
+}
+
+dfpred <- dfpred[!(dfpred$suitablehosts == "PICO+PIEN" & dfpred$focalagent=="WBBB"),]
+dfpred <- dfpred[!(dfpred$suitablehosts == "PICO+ABLA" & dfpred$focalagent=="SB"),]
+dfpred <- dfpred[!(dfpred$suitablehosts == "PIEN+ABLA" & dfpred$focalagent=="MPB"),]
+dfpred$suitablehostsP <- factor(dfpred$suitablehosts, levels=c("PICO+PIEN",  "PICO+ABLA", "PIEN+ABLA",  "PICO+PIEN+ABLA"), labels=c("PICO & PIEN",  "PICO & ABLA", "PIEN & ABLA",  "PICO, PIEN, & ABLA"), ordered=T)
+
+ggseverity <- ggplot(dfpred, aes(x=focalagent, y=propTBA*100, fill=focalagent, colour=focalagent))+geom_boxplot(notch=T)+facet_grid(.~suitablehostsP, scales="free_x", space="free_x")+xlab("bark beetle species")+scale_fill_manual(values=adjust_transparency(c(p1col[1:3], gray(0.3)), 0.5))+scale_colour_manual(values=c(p1col[1:3], gray(0.3)))+theme(legend.position = "none")+ylim(1,110)+geom_text(aes(label=pplot), vjust=-0.1,size=9, col="black")+ylab("Severity (% BA affected)")
+
+ggsave(here("Results/Figures/FigureSevertitybySuitablehosts.jpg"), plot=ggseverity, width=fig.width2,height=fig.width1*0.66,units="in")
+
+
+```
+
+```{r FigSeverity, fig.cap = "Severity", out.width = "504.8pt"}
+knitr::include_graphics( here("Results/Figures/FigureSevertitybySuitablehosts.jpg"))
+```
+
+## Given suitable stand conditions, is co-occurrence of multiple agents common?
+
+Not really, only 21.3% (n=461) of stands suitable for multiple agents were affected by multiple agents. When multiple agents occur, the most commonly occurring agents was MPB (n=341), followed by SB (n=317) and WBBB (n=308). The most commonly occurring combinations of agents was MPB and SB (33.2% of cases; n=153), followed by MPB and WBBB (31.2% of cases; n=144) and then SB and WBBB (26% of case; n=120). The combination of all three agents was rare (9.5% of cases; n=44).
+
+```{r determine co-occurrence of agents by hosts}
+dfpred <- merge(BBpred, df, id.vars="PLT_CN", all=T)
+dfpred <- dfpred[!dfpred$agentsuitable=="none",]
+
+dfpred[dfpred$focalagent=="Any" &dfpred$suitablehosts %in% c("MPB+SB+WBBB",  "SB+WBBB", "MPB+WBBB", "MPB+SB")& dfpred$agentsF %in% c("MPB+SB+WBBB",  "SB+WBBB", "MPB+WBBB", "MPB+SB") ,]  %>% group_by( agentsF) %>% summarise(n = n())%>% mutate(freq = n / sum(n))
+
+
+dfpred$suitablehostsF <-dfpred$suitablehosts
+dfpred$suitablehostsF <- factor(dfpred$suitablehosts, levels=levels(dfpred$suitablehosts)[-1], labels=c("PICO", "PIEN", "ABLA", "PICO\n&\nPIEN", "PICO\n&\nABLA", "PIEN\n&\nABLA", "PICO,\nPIEN,\n&\nABLA"))
+dfpred$agentsFplongrev <- factor(dfpred$agents,levels=c("MPB+SB+WBBB", "SB+WBBB", "MPB+WBBB", "MPB+SB", "WBBB", "SB", "MPB", "none"), labels=c("MPB, SB, & WBBB", "SB & WBBB", "MPB & WBBB", "MPB & SB", "WBBB", "SB", "MPB", "none"), ordered=T)
+
+
+dfpred[dfpred$focalagent=="Any" & dfpred$suitablehostsF %in% c( "PICO\n&\nPIEN", "PICO\n&\nABLA", "PIEN\n&\nABLA", "PICO,\nPIEN,\n&\nABLA"),]  %>% summarise(n = n())
+
+MPBx <- dfpred[dfpred$focalagent=="Any" & dfpred$suitablehostsF %in% c( "PICO\n&\nPIEN", "PICO\n&\nABLA", "PICO,\nPIEN,\n&\nABLA") & dfpred$agentsF %in% c("MPB+SB+WBBB",  "MPB+WBBB", "MPB+SB") ,]  %>% group_by(suitablehostsF, agentsFplongrev) %>% summarise(n = n())%>% mutate(freq = n / sum(n))
+sum(MPBx$n)
+sum(MPBx$n)/nrow(dfpred[dfpred$suitablehostsF %in% c( "PICO\n&\nPIEN", "PICO\n&\nABLA", "PICO,\nPIEN,\n&\nABLA"),])
+
+SBx <- dfpred[dfpred$focalagent=="Any" & dfpred$suitablehostsF %in% c( "PICO\n&\nPIEN", "PIEN\n&\nABLA", "PICO,\nPIEN,\n&\nABLA") & dfpred$agentsF %in% c("MPB+SB+WBBB",  "SB+WBBB", "MPB+SB") ,]  %>% group_by(suitablehostsF, agentsFplongrev) %>% summarise(n = n())%>% mutate(freq = n / sum(n))
+sum(SBx$n)
+sum(SBx$n)/nrow(dfpred[dfpred$suitablehostsF %in% c( "PICO\n&\nPIEN", "PIEN\n&\nABLA", "PICO,\nPIEN,\n&\nABLA"),])
+
+WBBBx <- dfpred[dfpred$focalagent=="Any" & dfpred$suitablehostsF %in% c( "PIEN\n&\nABLA", "PICO\n&\nABLA", "PICO,\nPIEN,\n&\nABLA") & dfpred$agentsF %in% c("MPB+SB+WBBB",  "SB+WBBB", "MPB+WBBB") ,]  %>% group_by(suitablehostsF, agentsFplongrev) %>% summarise(n = n())%>% mutate(freq = n / sum(n))
+sum(WBBBx$n)
+sum(WBBBx$n)/nrow(dfpred[dfpred$suitablehostsF %in% c( "PIEN\n&\nABLA", "PICO\n&\nABLA", "PICO,\nPIEN,\n&\nABLA"),])
+
+
+
+### 
+table(dfpred$suitablehostsF, dfpred$agents)
+x <- dfpred[dfpred$focalhost=="Any" & dfpred$suitablehostsF %in% c("PICO\n&\nPIEN", "PICO\n&\nABLA", "PIEN\n&\nABLA", "PICO,\nPIEN,\n&\nABLA") &  !dfpred$agentsFplongrev =="none",]  %>% group_by(suitablehostsF, agentsFplongrev) %>% summarise(n = n())%>% mutate(freq = n / sum(n))
+
+xPICO <-x[x$suitablehostsF %in% c("PICO\n&\nPIEN", "PICO\n&\nABLA",  "PICO,\nPIEN,\n&\nABLA"),]
+#
+
+## Agents given presence of any agent
+co <- dfpred[!dfpred$focalhost=="Any" ,]  %>% group_by(suitablehostsF, agentsFplongrev) %>% summarise(n = n())%>% mutate(freq = n / sum(n))
+
+co[co$agentsFplongrev %in% c("MPB, SB, & WBBB", "SB & WBBB", "MPB & WBBB", "MPB & SB") & co$suitablehostsF %in% c("PICO\n&\nPIEN", "PICO\n&\nABLA", "PIEN\n&\nABLA", "PICO,\nPIEN,\n&\nABLA"),]
+
+
+ggAgentsbySuitablehosts <- ggplot(dfpred[dfpred$focalhost=="Any",], aes(x=suitablehostsF,fill=agentsFplongrev))+geom_bar()+theme(legend.title = element_blank())+scale_fill_manual(values=p2col)+theme(axis.title.x=element_blank())
+
+ggsave(here("Results/Figures/Figure-AgentsbySuitablehosts.jpg"), plot=ggAgentsbySuitablehosts , width=fig.width1.5,height=fig.width1*0.75,units="in")
+```
+
+```{r FigCoOccurrence, fig.cap = "Co-occurrence",  out.width = "504.8pt", eval=F}
+knitr::include_graphics( here("Results/Figures/Figure-AgentsbySuitablehosts.jpg"))
+```
+
+##  Is severity greater in stands with multiple agents?
+```{r multiple agents}
+library(rcompanion)
+dfpred <- merge(BBpred, df, id.vars="PLT_CN", all=T)
+dfpred <- dfpred[!dfpred$suitablehosts == "none", ]
+dfpred <- dfpred[dfpred$affected01=="affected",]
+
+dfpred$suitablehosts <- factor(dfpred$suitablehosts, levels=levels(dfpred$suitablehosts)[-1], labels=c("PICO", "PIEN", "ABLA", "PICO+PIEN", "PICO+ABLA", "PIEN+ABLA", "PICO+PIEN+ABLA"))
+
+#dfpred <- dfpred[!(dfpred$suitablehosts=="PICO" & dfpred$agentsF %in% c("SB", "WBBB", "MPB+SB", "MPB+WBBB", "SB+WBBB", "MPB+SB+WBBB")),]
+
+#dfpred <- dfpred[!(dfpred$suitablehosts=="PIEN" & dfpred$agentsF %in% c("MPB", "WBBB", "MPB+SB", "MPB+WBBB", "SB+WBBB", "MPB+SB+WBBB")),]
+
+#dfpred <- dfpred[!(dfpred$suitablehosts=="ABLA" & dfpred$agentsF %in% c("MPB", "SB", "MPB+SB", "MPB+WBBB", "SB+WBBB", "MPB+SB+WBBB")),]
+
+dfpred <- dfpred[dfpred$suitablehosts %in% c("PICO+PIEN",  "PICO+ABLA", "PIEN+ABLA",  "PICO+PIEN+ABLA"), ]
+
+dfpred <- dfpred[!(dfpred$suitablehosts=="PICO+PIEN" & dfpred$agentsF %in% c("WBBB", "MPB+WBBB", "SB+WBBB", "MPB+SB+WBBB")),]
+
+dfpred <- dfpred[!(dfpred$suitablehosts=="PICO+ABLA" & dfpred$agentsF %in% c("SB", "MPB+SB", "SB+WBBB", "MPB+SB+WBBB")),]
+
+dfpred <- dfpred[!(dfpred$suitablehosts=="PIEN+ABLA" & dfpred$agentsF %in% c("MPB", "MPB+SB", "MPB+WBBB", "MPB+SB+WBBB")),]
+
+dfpred <-dfpred[dfpred$focalagent=="Any",]
+
+results <- NULL
+  dfsub <- dfpred[dfpred$suitablehosts =="PICO+PIEN"  & dfpred$agents %in% c("MPB", "SB","MPB+SB"),]
+  dfsub$agents <- as.factor(as.character(dfsub$agents))
+  x <- kruskal.test(propTBA~agents, data=dfsub)
+  res <- data.frame(agentsF= c("MPB", "SB","MPB+SB"), p=NA)
+  DT <- dunnTest(propTBA~agents, data=dfsub,method="bh")
+  res <- rcompanion::cldList(P.unadj ~ Comparison, data = DT$res, threshold = 0.1)
+  res$suitablehosts <- "PICO+PIEN"
+
+  res <- merge(res, dfsub %>% group_by(agents) %>% summarise(median =median(propTBA), propTBA=max(propTBA)), by.x="Group", by.y="agents")
+  res$Letter2 <- c("b", "c", "a")
+  results <- rbind(results, res)
+  
+  dfsub <- dfpred[dfpred$suitablehosts == "PICO+ABLA"  & dfpred$agentsF %in% c("MPB", "WBBB","MPB+WBBB"),]
+  dfsub$agentsF <- as.factor(as.character(dfsub$agentsF))
+  x <- kruskal.test(propTBA~agentsF, data=dfsub)
+  DT <- dunnTest(propTBA~agentsF, data=dfsub,method="bh")
+  res <- cldList(P.unadj ~ Comparison, data = DT$res, threshold = 0.05)
+  res$suitablehosts <- "PICO+ABLA"
+  res <- merge(res, dfsub %>% group_by(agents) %>% summarise(median =median(propTBA), propTBA=max(propTBA)), by.x="Group", by.y="agents")
+  res$Letter2 <- c("b", "c", "a")
+  results <- rbind(results, res)
+  
+  dfsub <- dfpred[dfpred$suitablehosts == "PIEN+ABLA"  & dfpred$agentsF %in% c("SB", "WBBB","SB+WBBB"),]
+  dfsub$agentsF <- as.factor(as.character(dfsub$agentsF))
+  x <- kruskal.test(propTBA~agentsF, data=dfsub)
+  DT <- dunnTest(propTBA~agentsF, data=dfsub,method="bh")
+  res <- cldList(P.unadj ~ Comparison, data = DT$res, threshold = 0.05)
+  res$suitablehosts <- "PIEN+ABLA"
+  res <- merge(res, dfsub %>% group_by(agents) %>% summarise(median =median(propTBA), propTBA=max(propTBA)), by.x="Group", by.y="agents")
+  res$Letter2 <- c("b", "c", "a")
+  results <- rbind(results, res)
+  
+  dfsub <- dfpred[dfpred$suitablehosts == "PICO+PIEN+ABLA",]
+  dfsub$agentsF <- as.factor(as.character(dfsub$agentsF))
+  x <- kruskal.test(propTBA~agentsF, data=dfsub)
+  DT <- dunnTest(propTBA~agentsF, data=dfsub,method="bh")
+  res <- cldList(P.unadj ~ Comparison, data = DT$res, threshold = 0.05)
+  res$suitablehosts <- "PICO+PIEN+ABLA"
+  res <- merge(res, dfsub %>% group_by(agents) %>% summarise(median =median(propTBA), propTBA=max(propTBA)), by.x="Group", by.y="agents")
+  res <- res[order(res$median),]
+  res$Letter2 <- c("a", "ab", "abc", "b", "c", "d", "d")
+  
+  results <- rbind(results, res)
+  results$agentsF <- results$Group
+  
+  
+results$suitablehosts <- factor(results$suitablehosts,
+levels=c("PICO+PIEN", "PICO+ABLA", "PIEN+ABLA", "PICO+PIEN+ABLA"), labels=c("PICO & PIEN", "PICO & ABLA", "PIEN & ABLA", "PICO, PIEN, & ABLA"), ordered=T)
+dfpred$suitablehosts <- factor(dfpred$suitablehosts, levels=c("PICO+PIEN", "PICO+ABLA", "PIEN+ABLA", "PICO+PIEN+ABLA"), labels=c("PICO & PIEN", "PICO & ABLA", "PIEN & ABLA", "PICO, PIEN, & ABLA"), ordered=T)
+
+dfpred$agentsF <- factor(dfpred$agentsF,
+levels=c("MPB", "SB", "WBBB", "MPB+SB", "MPB+WBBB", "SB+WBBB", "MPB+SB+WBBB"), labels=c("MPB", "SB", "WBBB", "MPB\n&\nSB", "MPB\n&\nWBBB", "SB\n&\nWBBB", "MPB,\nSB,\n&\nWBBB"), ordered=T)
+results$agentsF <- factor(results$agentsF,
+levels=c("MPB", "SB", "WBBB", "MPB+SB", "MPB+WBBB", "SB+WBBB", "MPB+SB+WBBB"), labels=c("MPB", "SB", "WBBB", "MPB\n&\nSB", "MPB\n&\nWBBB", "SB\n&\nWBBB", "MPB,\nSB,\n&\nWBBB"), ordered=T)
+
+
+ggmultipleseverity <- ggplot(dfpred[dfpred$focalagent=="Any",], aes(x=agentsF,y=propTBA*100, fill=agentsF))+geom_boxplot(notch=F)+facet_grid(.~suitablehosts, scales="free_x", space = "free_x")+theme(legend.position="none")+scale_fill_manual(values=rev(p2col)[-1])+ylab("Severity (% basal area)")+xlab("")+ylim(0,110)+geom_text(data=results, aes(label=Letter2), vjust=-1,size=4.5, col="black")+theme(axis.text.x=element_blank(), axis.title.x=element_blank(), axis.ticks = element_blank(), plot.margin = unit(c(4.5,4.5,0,4.5), "pt"))
+
+ggmultipelcount<- ggplot(dfpred[dfpred$focalagent=="Any",], aes(x=agentsF, fill=agentsF))+geom_bar()+facet_grid(.~suitablehosts, scales="free", space = "free_x")+theme(legend.position="none")+scale_fill_manual(values=rev(p2col)[-1])+xlab("")+ylab("frequency")+theme(strip.background = element_blank(), strip.text.x = element_blank(), plot.margin = unit(c(3.5,4.5,0,4.5), "pt"))
+
+ggmulti <- ggmultipleseverity + ggmultipelcount +plot_layout(ncol=1, heights=c(1,0.5))
+ggsave(here("Results/Figures/FigureSeverityMultiple.jpg"), plot=ggmulti  , width=fig.width2,height=fig.width1.5,units="in")
+
+ggmultipleseverity <- ggplot(dfpred[dfpred$focalagent=="Any",], aes(x=agentsF,y=propTBA*100, fill=agentsF))+geom_boxplot(notch=F)+facet_grid(.~suitablehosts, scales="free_x", space = "free_x")+theme(legend.position="none")+scale_fill_manual(values=rev(p2col)[-1])+ylab("Severity (% basal area)")+xlab("Bark beetle species present")+ylim(0,110)+geom_text(data=results, aes(label=Letter2), vjust=-1,size=4.5, col="black")
+
+ggsave(here("Results/Figures/FigureHotSpotSeverity.jpg"), plot=ggmultipleseverity, width=fig.width2,height=fig.width1*0.75,units="in")
+
+```
+
+Generally, yes. 
+
+When plots contained two tree species susceptible to bark beetles, the presence of both bark beetle species increased tree mortality relative to presence of only one bark beetle species (Fig. \@ref(fig:FigHotSpotSeverity)). The increase was greatest for stands that contained both MPB and SB; the median severity of plots with both MPB and SB was 33.7 percentage points greater than MPB alone and 38.3 percentage points greater than SB alone. The median severity of plots with both MPB and WBBB was 7.0 percentage points greater than MPB alone and 13.6 percentage points greater than WBBB alone. The median severity of plots with both SB and WBBB was 14.7 percentage points greater than SB alone and 19.8 percentage points greater than WBBB alone.
+
+Given stand conditions that made all three tree species susceptible to bark beetles, the highest rates of mortality were in plots where both MPB and SB present; whether or not WBBB was also present did not affect mortality severity (~1 percentage point difference in median severity; Fig. \@ref(fig:FigHotSpotSeverity)). 
+
+Plots with both SB and WBBB experience similar mortality to plots
+
+
+The median severity of plots with all three agents was 16.2 percentage points greater than only MPB and WBBB and 27.4% percentage points greater than plots with SB and WBBB. 
+
+The median severity of plots with all three agents was most similar to plots affected by both 
+
+
+The median severity of plots with all three agents was 27.0 percentage points greater than MPB alone, 34.2 percentage points greater than SB alone, and 32.0% percentage points greater than WBBB alone. 
+
+
+```{r FigHotSpotSeverity, fig.cap = "The severity of bark beetle mortality in plots with multiple tree species susceptible to bark beetles (columns) by the combinatin of bark beetle species present. Letters above boxes indicate significant (p < 0.05) differences between groups as determined by a Dunn test, a nonparametric rank sum test. The bottom and top limits of each box are the lower and upper quartiles, respectively; the thick black line within the box is the median; error bars equal ±1.5 times the interquartile range; and points denote outliers, values outside ±1.5 times the interquartile range.",  out.width = "504.8pt"}
+knitr::include_graphics( here("Results/Figures/FigureHotSpotSeverity.jpg"))
+```
+
+
+# Discussion
+
+# References
+
+<div id="refs"></div>
+
+## Supplement
+### Random Forest Modeling
+```{r plot confusion matrices}
+MPBct <- read.csv(here("Results/RF-confusiontable-agentMPB-occurrence-SMOTE.csv"))
+SBct <- read.csv(here("Results/RF-confusiontable-agentSB-occurrence-SMOTE.csv"))
+WBBBct <- read.csv(here("Results/RF-confusiontable-agentWBBB-occurrence-SMOTE.csv"))
+
+BBct <- data.frame(agent=c("MPB", "SB", "WBBB"), sensitivity=c(MPBct[2,2]/sum(MPBct[,2]), SBct[2,2]/sum(SBct[,2]), WBBBct[2,2]/sum(WBBBct[,2])), accuracy= c((MPBct[2,2]+MPBct[1,1])/sum(MPBct), (SBct[2,2]+SBct[1,1])/sum(SBct), (WBBBct[2,2]+WBBBct[1,1])/sum(WBBBct)))
+BBct$approach <- "SMOTE"
+BBct1  <- BBct
+
+
+MPBct <- read.csv(here("Results/RF-confusiontable-agentMPB-occurrence-BALANCED.csv"))
+SBct <- read.csv(here("Results/RF-confusiontable-agentSB-occurrence-BALANCED.csv"))
+WBBBct <- read.csv(here("Results/RF-confusiontable-agentWBBB-occurrence-BALANCED.csv"))
+
+BBct <- data.frame(agent=c("MPB", "SB", "WBBB"), sensitivity=c(MPBct[2,2]/sum(MPBct[,2]), SBct[2,2]/sum(SBct[,2]), WBBBct[2,2]/sum(WBBBct[,2])), accuracy= c((MPBct[2,2]+MPBct[1,1])/sum(MPBct), (SBct[2,2]+SBct[1,1])/sum(SBct), (WBBBct[2,2]+WBBBct[1,1])/sum(WBBBct)))
+BBct$approach <- "Balanced"
+BBct2  <- BBct
+
+MPBct <- read.csv(here("Results/RF-confusiontable-agentMPB-occurrence-WEIGHTED.csv"))
+SBct <- read.csv(here("Results/RF-confusiontable-agentSB-occurrence-WEIGHTED.csv"))
+WBBBct <- read.csv(here("Results/RF-confusiontable-agentWBBB-occurrence-WEIGHTED.csv"))
+
+BBct <- data.frame(agent=c("MPB", "SB", "WBBB"), sensitivity=c(MPBct[2,2]/sum(MPBct[,2]), SBct[2,2]/sum(SBct[,2]), WBBBct[2,2]/sum(WBBBct[,2])), accuracy= c((MPBct[2,2]+MPBct[1,1])/sum(MPBct), (SBct[2,2]+SBct[1,1])/sum(SBct), (WBBBct[2,2]+WBBBct[1,1])/sum(WBBBct)))
+BBct$approach <- "Weighted"
+BBct3  <- BBct
+
+
+BBct <- rbind(rbind(BBct1, BBct2), BBct3)
+
+ggconfused <- ggplot(BBct, aes(x=agent, y=sensitivity, fill=approach))+geom_bar(stat="identity", position="dodge")+theme(legend.position = "none") + ggplot(BBct, aes(x=agent, y=accuracy, fill=approach))+geom_bar(stat="identity", position="dodge")+plot_layout(nrow=2, guides="collect")
+
+
+ggsave(here("Results/Figures/Confusion.jpg"), plot=ggconfused, width=fig.width1,height=fig.width1,units="in")
+```
+
+```{r confusionFig}
+knitr::include_graphics(here("Results/Figures/Confusion.jpg"))
+```
+
+
+
+```{r FigPartial,  fig.cap = "A caption", out.width = "504.8pt"}
+MPBpp <- read.csv(here("Results/RF-partialdependence-agentMPB-occurrence-SMOTE.csv"))
+MPBpp$focalagent <- "MPB"
+SBpp <- read.csv(here("Results/RF-partialdependence-agentSB-occurrence-SMOTE.csv"))
+SBpp$focalagent <- "SB"
+WBBBpp <- read.csv(here("Results/RF-partialdependence-agentWBBB-occurrence-SMOTE.csv"))
+WBBBpp$focalagent <- "WBBB"
+
+ppdat <- rbind(rbind(MPBpp, SBpp), WBBBpp)
+ppdat$var[ppdat$var %in% paste0("BA.", c("PICO", "PIEN", "ABLA"))] <- "BA"
+ppdat$var[ppdat$var %in% paste0("QMD.", c("PICO", "PIEN", "ABLA"))] <- "QMD"
+ppdat$var[ppdat$var %in% paste0("propBA.", c("PICO", "PIEN", "ABLA"))] <- "propBA"
+
+x <- df[!df$focalagent=="Any",]
+x$propBA <- x$BA.host/x$BA.total
+x <- x[,c("QMD.host", "propBA", "BA.host", "focalagent", "affected01")]
+x$affected01 <- ifelse(x$affected01=="affected", 1, 0)
+
+xm <- melt(x, id.vars=c("focalagent", "affected01"))
+colnames(xm) <- c("focalagent", "affected01", "var", "value")
+xm$var <- factor(xm$var, levels=c("QMD.host", "propBA", "BA.host"), labels=c("QMD", "propBA", "BA"))
+
+pBA1 <- ggplot(ppdat[ppdat$var=="BA",], aes(x=value, y=yhat, col=focalagent))+geom_smooth()+scale_color_manual(values=p1col)+theme(legend.position="none")+ylab("probability of occurrence")+theme(axis.title.x=element_blank(),axis.text.x=element_blank() )
+
+pBA2 <- ggplot(xm[xm$var=="BA",],aes(x=value, y=focalagent, fill=interaction(focalagent, affected01)))+geom_boxplot()+scale_fill_manual(values=c(adjust_transparency(p1col[1:3], alpha=0.25), p1col[1:3]))+theme(legend.position="none")+ylab("bark beetle")+xlab("basal area")
+
+pQMD1 <- ggplot(ppdat[ppdat$var=="QMD",], aes(x=value, y=yhat, col=focalagent))+geom_smooth()+scale_color_manual(values=p1col)+theme(legend.position="none")+ylab("probability of occurrence")+theme(axis.title.x=element_blank(),axis.text.x=element_blank() )
+
+pQMD2 <- ggplot(xm[xm$var=="QMD",],aes(x=value, y=focalagent, fill=interaction(focalagent, affected01)))+geom_boxplot()+scale_fill_manual(values=c(adjust_transparency(p1col[1:3], alpha=0.25), p1col[1:3]))+theme(legend.position="none")+ylab("")+xlab("QMD")
+
+ppropBA1 <- ggplot(ppdat[ppdat$var=="propBA",], aes(x=value*100, y=yhat, col=focalagent))+geom_smooth()+scale_color_manual(values=p1col)+theme(legend.position="none")+ylab("probability of occurrence")+theme(axis.title.x=element_blank(),axis.text.x=element_blank() )
+
+ppropBA2 <- ggplot(xm[xm$var=="propBA",],aes(x=value*100, y=focalagent, fill=interaction(focalagent, affected01)))+geom_boxplot()+scale_fill_manual(values=c(adjust_transparency(p1col[1:3], alpha=0.25), p1col[1:3]))+theme(legend.position="none")+ylab("")+xlab("% BA")
+
+
+ppplot <- pBA1  + pQMD1 +theme(axis.title.y=element_blank(),axis.text.y=element_blank()) +ppropBA1 +theme(axis.title.y=element_blank(),axis.text.y=element_blank())+ pBA2 + pQMD2 +theme(axis.text.y=element_blank())  + ppropBA2 +theme(axis.text.y=element_blank()) + plot_layout(ncol=3, heights=c(2,1))
+
+ggsave(here("Results/Figures/PartialDependence.jpg"), plot=ppplot, width=fig.width2,height=fig.width1,units="in")
+```
+
+
+
+In general, the probability of each bark beetle species occurring increased with host basal area, quadratic mean diameter, and percent basal area. 
+```{r partialFig}
+knitr::include_graphics(here("Results/Figures/PartialDependence.jpg"))
+```
+
+### Stand structure and composition in stands 
+```{r FigStandSC,  fig.cap = "A caption", out.width = "322.56pt", eval=T}
+datBB.c <-df[!df$focalhost=="Any",] 
+
+QMD.melt <- melt(datBB.c[,c("hosts",paste0("QMD.", c("PIEN", "PICO", "ABLA")))], "hosts")
+QMD.melt$variable <- factor(QMD.melt$variable, levels=paste0("QMD.", c("PICO","PIEN",  "ABLA")), labels=c("PICO", "PIEN", "ABLA"), ordered=T)
+QMD.melt$facet <- "QMD"
+
+TPH.melt <- melt(datBB.c[,c("hosts",paste0("TPH.", c("PIEN", "PICO", "ABLA")))], "hosts")
+TPH.melt$variable <- factor(TPH.melt$variable, levels=paste0("TPH.", c("PICO","PIEN",  "ABLA")), labels=c("PICO", "PIEN", "ABLA"), ordered=T)
+TPH.melt$facet <- "TPH"
+
+BA.melt <- melt(datBB.c[,c("hosts",paste0("BA.", c("PIEN", "PICO", "ABLA")))], "hosts")
+BA.melt$variable <- factor(BA.melt$variable, levels=paste0("BA.", c("PICO","PIEN",  "ABLA")), labels=c("PICO", "PIEN", "ABLA"), ordered=T)
+BA.melt$facet <- "BA"
+
+propBA.melt <-datBB.c[,c("hosts",paste0("BA.", c("PIEN", "PICO", "ABLA", "total")))]
+propBA.melt$propBA.PIEN <- propBA.melt$BA.PIEN / propBA.melt$BA.total *100
+propBA.melt$propBA.ABLA <- propBA.melt$BA.ABLA / propBA.melt$BA.total *100
+propBA.melt$propBA.PICO <- propBA.melt$BA.PICO / propBA.melt$BA.total *100
+  
+propBA.melt <-  melt(propBA.melt[,c("hosts",paste0("propBA.", c("PIEN", "PICO", "ABLA")))], "hosts")
+propBA.melt$variable <- factor(propBA.melt$variable, levels=paste0("propBA.", c("PICO","PIEN",  "ABLA")), labels=c("PICO", "PIEN", "ABLA"), ordered=T)
+propBA.melt$facet <- "BA dominance (%)"
+
+plotdat <- rbind(propBA.melt, TPH.melt, BA.melt, QMD.melt)
+
+ggss <- ggplot(plotdat[plotdat$value>0,], aes(x=hosts, y=value,fill=variable))+geom_boxplot(outlier.size = 0.2,color="black",lwd=0.2,position = position_dodge(preserve = "single"))+scale_fill_brewer(palette ="BuPu")+ylab("value")+xlab("")+facet_wrap(.~facet, scales="free_y", ncol=1)+theme(legend.position = "bottom", legend.title=element_blank())
+
+ggsave(here("Results/Figures/Figure-HostStructureByhostIdentity.jpg"), plot=ggss , width=fig.width1.5, height=fig.width1*2, units="in")
+knitr::include_graphics(here("Results/Figures/Figure-HostStructureByhostIdentity.jpg"))
+```
+
+### Maps
+```{r maps all plots and hosts, eval=F}
+df.all <- df[df$focalhost == "Any", ]
+
+df.all.sf <- st_as_sf(df.all, coords = c("LON", "LAT"), crs = 4326)
+
+states <-st_read(here("Data/Spatial/States/cb_2018_us_state_20m.shp"),quiet=T)
+IMW <- states[states$STUSPS %in% c("AZ", "CO", "ID","MT", "NM", "UT", "WY"),]
+
+ext <- as.matrix(extent(IMW))
+#ext[1,1] <- ext[1,1] -0.25
+#ext[1,2] <- ext[1,2] +0.25
+#ext[2,1] <- ext[2,1] -1
+#ext[2,2] <- ext[2,2] +1
+
+
+map1 <- tm_shape(IMW, bbox=tmaptools::bb(ext)) +  tm_fill(col=grey(level=0.95)) +  tm_borders()  + tm_shape(df.all.sf[df.all.sf$hostsFPlong=="PICO",]) +tm_dots(col="agentsFplong", legend.show = FALSE,size=.0025, palette=rev(p2col)) +tm_compass(position=c(0.9, 0.02), just=c("center", "bottom"), text.size=0.5, size=2)+tm_layout(main.title = "PICO",main.title.size=0.5,main.title.position="center")
+
+map2 <- tm_shape(IMW, bbox=tmaptools::bb(ext)) +  tm_fill(col=grey(level=0.95)) +  tm_borders()  + tm_shape(df.all.sf[df.all.sf$hostsFPlong=="PIEN",]) +tm_dots(col="agentsFplong", legend.show = FALSE,size=.0025, palette=rev(p2col)) +tm_layout(main.title = "PIEN",main.title.size=0.5,main.title.position="center")
+
+map3 <- tm_shape(IMW, bbox=tmaptools::bb(ext)) +  tm_fill(col=grey(level=0.95)) +  tm_borders()  + tm_shape(df.all.sf[df.all.sf$hostsFPlong=="ABLA",]) +tm_dots(col="agentsFplong", legend.show = FALSE,size=.0025, palette=rev(p2col)) +tm_layout(main.title = "ABLA",main.title.size=0.5, main.title.position="center")
+
+map4 <- tm_shape(IMW, bbox=tmaptools::bb(ext)) +  tm_fill(col=grey(level=0.95)) +  tm_borders()  + tm_shape(df.all.sf[df.all.sf$hostsFPlong=="PICO & PIEN",]) +tm_dots(col="agentsFplong", legend.show = FALSE,size=.0025, palette=rev(p2col)) +tm_layout(main.title = "PICO & PIEN",main.title.size=0.5,main.title.position="center")
+
+map5 <- tm_shape(IMW, bbox=tmaptools::bb(ext)) +  tm_fill(col=grey(level=0.95)) +  tm_borders()  + tm_shape(df.all.sf[df.all.sf$hostsFPlong=="PICO & ABLA",]) +tm_dots(col="agentsFplong", legend.show = FALSE,size=.0025, palette=rev(p2col)) +tm_layout(main.title = "PICO & ABLA", main.title.size=0.5, main.title.position="center")
+
+map6 <- tm_shape(IMW, bbox=tmaptools::bb(ext)) +  tm_fill(col=grey(level=0.95)) +  tm_borders()  + tm_shape(df.all.sf[df.all.sf$hostsFPlong=="PIEN & ABLA",]) +tm_dots(col="agentsFplong", legend.show = FALSE,size=.0025, palette=rev(p2col)) +tm_layout(main.title = "PIEN & ABLA", main.title.size=0.5, main.title.position="center")
+
+map7 <- tm_shape(IMW, bbox=tmaptools::bb(ext)) +  tm_fill(col=grey(level=0.95)) +  tm_borders()  + tm_shape(df.all.sf[df.all.sf$hostsFPlong=="PICO, PIEN, & ABLA",]) +tm_dots(col="agentsFplong", legend.show = FALSE,size=.0025, palette=rev(p2col))+tm_layout(main.title = "PICO, PIEN, & ABLA", main.title.size=0.5, main.title.position="center")
+
+legend.map <- tm_shape(IMW, bbox=tmaptools::bb(ext)) +  tm_fill(col=grey(level=0.95)) +  tm_borders()  + tm_shape(df.all.sf[df.all.sf$hostsFPlong=="PICO, PIEN, & ABLA",]) +tm_dots(col="agentsFplong", size=4, title="bark beetle species",  palette=rev(p2col))+tm_layout(legend.only = TRUE,legend.text.size = 0.5,legend.title.size = 0.65)+tm_scale_bar(position = c(0.5,0.16), text.size=0.5, just="center", breaks=c(0,250,500))
+
+Fig.file <- here("Results/Figures/Figure-Map-Allplots.jpg")
+jpeg(Fig.file, width=fig.width1.5, height=fig.width2/2, units="in", res=300)
+tmap_arrange(map1, map2,map3, map4, map5, map6, map7,legend.map, nrow=2)
+whatever <- dev.off()
+
+```
+
+```{r generate maps, eval=F}
+bbo.dat<- merge(BBpred, df, id.vars="PLT_CN", all=T)
+
+df.all <- bbo.dat[bbo.dat$focalhost == "Any", ]
+
+df.all.sf <- st_as_sf(df.all, coords = c("LON", "LAT"), crs = 4326)
+
+
+states <-st_read(here("Data/Spatial/States/cb_2018_us_state_20m.shp"),quiet=T)
+IMW <- states[states$STUSPS %in% c("AZ", "CO", "ID","MT", "NM", "UT", "WY"),]
+
+ext <- as.matrix(extent(IMW))
+#ext[1,1] <- ext[1,1] -0.25
+#ext[1,2] <- ext[1,2] +0.25
+#ext[2,1] <- ext[2,1] -1
+#ext[2,2] <- ext[2,2] +1
+
+
+map1 <- tm_shape(IMW, bbox=tmaptools::bb(ext)) +  tm_fill(col=grey(level=0.95)) +  tm_borders()  + tm_shape(df.all.sf[df.all.sf$hostsFPlong=="PICO",]) +tm_dots(col="agentsFplong", legend.show = FALSE,size=.0025, palette=rev(p2col)) +tm_compass(position=c(0.9, 0.02), just=c("center", "bottom"), text.size=0.5, size=2)+tm_layout(main.title = "PICO",main.title.size=0.5,main.title.position="center")
+
+map2 <- tm_shape(IMW, bbox=tmaptools::bb(ext)) +  tm_fill(col=grey(level=0.95)) +  tm_borders()  + tm_shape(df.all.sf[df.all.sf$hostsFPlong=="PIEN",]) +tm_dots(col="agentsFplong", legend.show = FALSE,size=.0025, palette=rev(p2col)) +tm_layout(main.title = "PIEN",main.title.size=0.5,main.title.position="center")
+
+map3 <- tm_shape(IMW, bbox=tmaptools::bb(ext)) +  tm_fill(col=grey(level=0.95)) +  tm_borders()  + tm_shape(df.all.sf[df.all.sf$hostsFPlong=="ABLA",]) +tm_dots(col="agentsFplong", legend.show = FALSE,size=.0025, palette=rev(p2col)) +tm_layout(main.title = "ABLA",main.title.size=0.5, main.title.position="center")
+
+map4 <- tm_shape(IMW, bbox=tmaptools::bb(ext)) +  tm_fill(col=grey(level=0.95)) +  tm_borders()  + tm_shape(df.all.sf[df.all.sf$hostsFPlong=="PICO & PIEN",]) +tm_dots(col="agentsFplong", legend.show = FALSE,size=.0025, palette=rev(p2col)) +tm_layout(main.title = "PICO & PIEN",main.title.size=0.5,main.title.position="center")
+
+map5 <- tm_shape(IMW, bbox=tmaptools::bb(ext)) +  tm_fill(col=grey(level=0.95)) +  tm_borders()  + tm_shape(df.all.sf[df.all.sf$hostsFPlong=="PICO & ABLA",]) +tm_dots(col="agentsFplong", legend.show = FALSE,size=.0025, palette=rev(p2col)) +tm_layout(main.title = "PICO & ABLA", main.title.size=0.5, main.title.position="center")
+
+map6 <- tm_shape(IMW, bbox=tmaptools::bb(ext)) +  tm_fill(col=grey(level=0.95)) +  tm_borders()  + tm_shape(df.all.sf[df.all.sf$hostsFPlong=="PIEN & ABLA",]) +tm_dots(col="agentsFplong", legend.show = FALSE,size=.0025, palette=rev(p2col)) +tm_layout(main.title = "PIEN & ABLA", main.title.size=0.5, main.title.position="center")
+
+map7 <- tm_shape(IMW, bbox=tmaptools::bb(ext)) +  tm_fill(col=grey(level=0.95)) +  tm_borders()  + tm_shape(df.all.sf[df.all.sf$hostsFPlong=="PICO, PIEN, & ABLA",]) +tm_dots(col="agentsFplong", legend.show = FALSE,size=.0025, palette=rev(p2col))+tm_layout(main.title = "PICO, PIEN, & ABLA", main.title.size=0.5, main.title.position="center")
+
+legend.map <- tm_shape(IMW, bbox=tmaptools::bb(ext)) +  tm_fill(col=grey(level=0.95)) +  tm_borders()  + tm_shape(df.all.sf[df.all.sf$hostsFPlong=="PICO, PIEN, & ABLA",]) +tm_dots(col="agentsFplong", size=4, title="bark beetle species",  palette=rev(p2col))+tm_layout(legend.only = TRUE,legend.text.size = 0.5,legend.title.size = 0.65)+tm_scale_bar(position = c(0.5,0.16), text.size=0.5, just="center", breaks=c(0,250,500))
+
+Fig.file <- here("Results/Figures/Figure-Map.jpg")
+jpeg(Fig.file, width=fig.width1.5, height=fig.width2/2, units="in", res=300)
+tmap_arrange(map1, map2,map3, map4, map5, map6, map7,legend.map, nrow=2)
+whatever <- dev.off()
+
+```
+
+```{r FigMap, fig.cap="a caption", out.width = "504.8pt"}
+knitr::include_graphics(here("Results/Figures/Figure-Map.jpg"))
+```
+
 ```{r map study area of hosts, eval=F}
 f19 <- stars::read_stars(here("Data/Spatial/ITSPM2002-subalpine/f19/w001001.adf"), proxy=F)
-f93 <- stars::read_stars(here("/Data/Spatial/ITSPM2002-subalpine/f93/w001001.adf"), proxy=F)
-f108 <- stars::read_stars(here("/Data/Spatial/ITSPM2002-subalpine/f108/w001001.adf"), proxy=F)
+f93 <- stars::read_stars(here("Data/Spatial/ITSPM2002-subalpine/f93/w001001.adf"), proxy=F)
+f108 <- stars::read_stars(here("Data/Spatial/ITSPM2002-subalpine/f108/w001001.adf"), proxy=F)
 
 # reclassify to rasters to presence (1) and absence (0)
 f19[f19>0] <- 1 
@@ -704,711 +2065,78 @@ ext <- as.matrix(extent(IMW))
 
 sa.tmap <- tm_shape(IMW, bbox=tmaptools::bb(ext)) + tm_fill(col="#f5f5f5")+tm_borders()+tm_shape(fplot) +tm_raster(style = "cat", palette = c("#8c510a", "#bf812d", "#dfc27d", "#80cdc1", "#35978f", "#01665e", "#003c30"), colorNA=NULL, legend.show = TRUE, title="Hosts                    ", labels = c("PICO", "PIEN", "ABLA", "PICO & PIEN", "PICO & ABLA", "PIEN & ABLA", "PICO, PIEN, & ABLA"))+ tm_shape(notIMW) + tm_fill(col="white")+tm_compass(position=c(0.95, 0.88), just=c("center", "bottom"))+tm_layout(legend.bg.color="white")+tm_graticules(lines=FALSE)+tm_layout(legend.outside=TRUE,legend.text.size=0.55)+tm_scale_bar(position = c(0.01, 0.001), just="left", breaks=c(0,100),text.size=1.1)+tm_shape(IMW) +tm_borders()
 
-
 Fig.file <- here("Results/Figures/Figure-Studyarea.jpg")
 jpeg(Fig.file, width=fig.width1.5,height=fig.width1.5,units="in", res=300)
 sa.tmap 
 whatever <- dev.off()
 ```
 
-```{r describe frequency of hosts and agents, eval=T}
-## Hosts
-hosts <- df[!df$focalhost=="Any",] %>% group_by(focalhost) %>% summarise(n = n())%>%mutate(freq = n / sum(n))
-hostgroups <- df[df$focalhost=="Any",] %>% group_by(hosts) %>% summarise(n = n())%>%mutate(freq = n / sum(n))
-
-## Affected hosts
-affectedhosts <- df[!df$focalhost=="Any",] %>% group_by(focalhost, affected) %>% summarise(n = n())%>% mutate(freq = prop.table(n))
-affectednhosts <- df[df$focalhost=="Any",] %>% group_by(nhosts, affected) %>% summarise(n = n())%>% mutate(freq = prop.table(n))
-affectednhosts<- affectednhosts[affectednhosts$affected=="affected", ]
-affectednhosts<- affectednhosts[order(affectednhosts$freq, decreasing=T),]
-
-affectedhostgroups <- df[df$focalhost=="Any",] %>% group_by(hosts, affected) %>% summarise(n = n())%>% mutate(freq = prop.table(n))
-affectedhostgroups<- affectedhostgroups[affectedhostgroups$affected=="affected", ]
-affectedhostgroups<- affectedhostgroups[order(affectedhostgroups$freq, decreasing=T),]
-
-## Agents given host presence
-agents <- df[!df$focalhost=="Any",] %>% group_by(focalagent, affected) %>% summarise(n = n())%>%
-  mutate(freq = n / sum(n))
-PICOwMPB <- as.numeric(round(agents[agents$focalagent=="MPB" & agents$affected=="affected", "freq"]*100, 0))
-PIENwSB <- as.numeric(round(agents[agents$focalagent=="SB" & agents$affected=="affected", "freq"]*100, 0))
-ABLAwWBBB<- as.numeric(round(agents[agents$focalagent=="WBBB" & agents$affected=="affected", "freq"]*100, 0))
-
-## Agents given presence of any agent
-agentso <- df[!df$focalhost=="Any" & df$affected=="affected",] %>% group_by(focalagent) %>% summarise(n = n())%>%
-  mutate(freq = n / sum(n))
-
-agentsbyhosts <- df[!df$focalhost=="Any",] %>% group_by(focalagent, affected) %>% summarise(n = n())%>% mutate(freq = prop.table(n))
-
-p1 <- ggplot(df[df$focalhost=="Any",], aes(x=hosts, fill=interaction(hosts, affected))) + geom_bar(width=0.75, stat="count", col="black")+ylab("number of plots")+theme(axis.text.x = element_text(angle = 45, hjust=1,vjust=1),legend.position = "none", legend.title=element_blank())+scale_fill_manual(values=c(c("#8c510a", "#bf812d", "#dfc27d", "#80cdc1", "#35978f", "#01665e", "#003c30"), adjust_transparency(c("#8c510a", "#bf812d", "#dfc27d", "#80cdc1", "#35978f", "#01665e", "#003c30"), alpha=0.5)))
-
-Fig.file <- here("Results/Figures/Figure-PresencebyHostcombos.jpg")
-jpeg(Fig.file, width=fig.width1,height=fig.width1/1.5,units="in", res=300)
-p1
-whatever <- dev.off()
-```
-
-```{r determine co-occurrence of hosts}
-Fig.file <- here("Results/Figures/Figure-AgentbyHostcombo.jpg")
-df$hostsFPshort<- df$hostsFPlong
-df$hostsFPshort <- factor(df$hostsFPlong, levels=levels(df$hostsFPlong), labels=c("PICO", "PIEN", "ABLA", "PICO\n&\nPIEN", "PICO\n&\nABLA", "PIEN\n&\nABLA", "PICO,\nPIEN,\n&\nABLA"))
-df$agentsFplongrev <- df$agentsFplong
-df$agentsFplongrev <- factor(df$agentsFplongrev, levels=rev(levels( df$agentsFplong)))
-jpeg(Fig.file, width=fig.width2,height=fig.width1.5,units="in",res=300)
-ggplot(df[df$focalhost=="Any",], aes(x=hostsFPshort,fill=agentsFplongrev))+geom_bar()+theme(legend.title = element_blank())+xlab("hosts")+scale_fill_manual(values=p2col)
-whatever <- dev.off()
-```
-
-### Determine suitable hosts
-Construct random forest models using synthetic minority oversampling technique (SMOTE)
-
-#### MPB
-```{r fit MPB RF model, eval=F}
-response <- "agentMPB"
-vars <- c("BA.PICO", "QMD.PICO", "propBA.PICO")
-datBB.c <- df[df$focalhost=="Any",]
-
-splitit <- initial_split(datBB.c, prop=.7, strata=response)
-datz.train <- training(splitit)
-datz.test <- testing(splitit)
-datz.train.cv <- vfold_cv(datz.train, strata=response, v=10)
-
-# set formula
-BBoccurrence_recipe <- recipe(formula(paste(response, "~", paste(vars, collapse = " + "))), datz.train)
-
-# set sample weights
-wts <- 1/(table(datBB.c[,response])/ max(table(datBB.c[,response])))
-wts <- wts/sum(wts)
-
-
-# set model
-rf_model <- rand_forest() %>% set_args( trees=tune(), min_n=tune()) %>% set_engine("ranger", importance = "permutation", probability=T, seed=913, sample.fraction=wts) %>% set_mode("classification") 
-
-# set the workflow
-rf_workflow <- workflow() %>% add_recipe(BBoccurrence_recipe) %>% add_model(rf_model)
-
-# tune model
-tgrid <- expand.grid(trees = c(100,500), min_n=c(10, 50, 100))
-rf_tune_results <- rf_workflow %>% tune_grid(resamples = datz.train.cv,  grid = tgrid, metrics = metric_set(roc_auc, accuracy, sens, spec))
-
-tuneres <- rf_tune_results %>% collect_metrics()
-
-param_best<- rf_tune_results %>% select_best(metric = "roc_auc")
-
-# Use backward selection to identify important variables
-#dfo.vsurf <- VSURF::VSURF(datz.train[,vars], factor(datz.train[,response]), RFimplem="ranger", parallel=T, ntree=param_best$trees, min.node.size=param_best$min_n)
-#registerDoSEQ()
-#vars.final <- unique(c(vars[dfo.vsurf$varselect.pred]))
-vars.final <- vars
-BBoccurrence_recipe_final <- recipe(formula(paste(response, "~", paste(vars.final, collapse = " + "))), data=datBB.c)
-  
-rf_model_final <- rand_forest() %>% set_args(trees=param_best$trees, min_n=param_best$min_n, splitrule="gini") %>% set_engine("ranger", importance = "permutation", probability=T, sample.fraction=wts) %>% set_mode("classification") 
-
-rf_workflow_final <- workflow() %>% add_recipe(BBoccurrence_recipe_final) %>% add_model(rf_model_final)
-rf_workflow_final_fit<- rf_workflow_final %>% last_fit(splitit, metrics=metric_set(roc_auc, accuracy, sens, spec)) #emulates the process where, after determining the best model, the final fit on the entire training set is needed and is then evaluated on the test set. 
-test_performance <- rf_workflow_final_fit %>% collect_metrics()
-write.csv(test_performance, here(paste0("Results/RF-testperformance-", response, "-occurrence-2.csv")), row.names=F)
-  
-# generate a confusion matrix for test set
-test_predictions <- rf_workflow_final_fit %>% collect_predictions()
-confusion <- test_predictions %>% conf_mat(response,estimate = .pred_class)
-
-write.csv(confusion$table, here(paste0("Results/RF-confusiontable-", response, "-occurrence-2.csv")), row.names=F)
-
-# variable importance
-final_model <- fit(rf_workflow_final, data=datz.train)
-ranger_obj <- pull_workflow_fit(final_model)$fit
-
-# generate predictions for entire dataset
-x <- datBB.c$PLT_CN
-x <- cbind(x, predict(ranger_obj, datBB.c)$predictions[,2])
-colnames(x) <- c("PLT_CN", "SBpred")
-write.csv(x, here(paste0("Results/RF-pred-", response, "-occurrence-2.csv")), row.names=F)
-          
-x <- as.data.frame(ranger_obj$variable.importance)
-write.csv(x, here(paste0("Results/RF-vimp-", response, "-occurrence-2.csv")), row.names=F)
-          
-# partial dependence
-pd <- NULL
-for(z in vars.final){
-  pdz <- partial(ranger_obj, train=datz.train, pred.var=z, which.class=strsplit(response, split="agent")[[1]][2], prob=T)
-  pdz$var <- z
-  colnames(pdz) <- c("value","yhat","var")
-  pd <- rbind(pd, pdz)
-}
-write.csv(pd,  here(paste0("Results/RF-partialdependence-", response, "-occurrence-2.csv")), row.names=F)
-```
-
-#### SB
-```{r fit SB RF model, eval=F}
-response <- "agentSB"
-vars <- c("BA.PIEN", "QMD.PIEN", "propBA.PIEN")
-datBB.c <- df[df$focalhost=="Any",]
-
-splitit <- initial_split(datBB.c, prop=.7, strata=response)
-datz.train <- training(splitit)
-datz.test <- testing(splitit)
-datz.train.cv <- vfold_cv(datz.train, strata=response, v=10)
-
-# set formula
-BBoccurrence_recipe <- recipe(formula(paste(response, "~", paste(vars, collapse = " + "))), datz.train)
-
-  
-# set sample weights
-wts <- 1/(table(datBB.c[,response])/ max(table(datBB.c[,response])))
-wts <- wts/sum(wts)
-
-
-# set model
-rf_model <- rand_forest() %>% set_args( trees=tune(), min_n=tune()) %>% set_engine("ranger", importance = "permutation", probability=T, seed=913, sample.fraction=wts) %>% set_mode("classification") 
-
-# set the workflow
-rf_workflow <- workflow() %>% add_recipe(BBoccurrence_recipe) %>% add_model(rf_model)
-
-# tune model
-tgrid <- expand.grid(trees = c(100,500), min_n=c(10, 50, 100))
-rf_tune_results <- rf_workflow %>% tune_grid(resamples = datz.train.cv,  grid = tgrid, metrics = metric_set(roc_auc, accuracy, sens, spec))
-
-tuneres <- rf_tune_results %>% collect_metrics()
-
-param_best<- rf_tune_results %>% select_best(metric = "roc_auc")
-
-# Use backward selection to identify important variables
-#dfo.vsurf <- VSURF::VSURF(datz.train[,vars], factor(datz.train[,response]), RFimplem="ranger", parallel=T, ntree=param_best$trees, min.node.size=param_best$min_n)
-#registerDoSEQ()
-#vars.final <- unique(c(vars[dfo.vsurf$varselect.pred]))
-vars.final <- vars
-BBoccurrence_recipe_final <- recipe(formula(paste(response, "~", paste(vars.final, collapse = " + "))), data=datBB.c)
-  
-rf_model_final <- rand_forest() %>% set_args(trees=param_best$trees, min_n=param_best$min_n, splitrule="gini") %>% set_engine("ranger", importance = "permutation", probability=T, sample.fraction=wts) %>% set_mode("classification") 
-
-rf_workflow_final <- workflow() %>% add_recipe(BBoccurrence_recipe_final) %>% add_model(rf_model_final)
-rf_workflow_final_fit<- rf_workflow_final %>% last_fit(splitit, metrics=metric_set(roc_auc, accuracy, sens, spec)) #emulates the process where, after determining the best model, the final fit on the entire training set is needed and is then evaluated on the test set. 
-test_performance <- rf_workflow_final_fit %>% collect_metrics()
-write.csv(test_performance, here(paste0("Results/RF-testperformance-", response, "-occurrence-2.csv")), row.names=F)
-  
-# generate a confusion matrix for test set
-test_predictions <- rf_workflow_final_fit %>% collect_predictions()
-confusion <- test_predictions %>% conf_mat(response,estimate = .pred_class)
-
-write.csv(confusion$table, here(paste0("Results/RF-confusiontable-", response, "-occurrence-2.csv")), row.names=F)
-
-# variable importance
-final_model <- fit(rf_workflow_final, data=datz.train)
-ranger_obj <- pull_workflow_fit(final_model)$fit
-
-# generate predictions for entire dataset
-x <- datBB.c$PLT_CN
-x <- cbind(x, predict(ranger_obj, datBB.c)$predictions[,2])
-colnames(x) <- c("PLT_CN", "SBpred")
-write.csv(x, here(paste0("Results/RF-pred-", response, "-occurrence-2.csv")), row.names=F)
-          
-x <- as.data.frame(ranger_obj$variable.importance)
-write.csv(x, here(paste0("Results/RF-vimp-", response, "-occurrence-2.csv")), row.names=F)
-          
-# partial dependence
-pd <- NULL
-for(z in vars.final){
-  pdz <- partial(ranger_obj, train=datz.train, pred.var=z, which.class=strsplit(response, split="agent")[[1]][2], prob=T)
-  pdz$var <- z
-  colnames(pdz) <- c("value","yhat","var")
-  pd <- rbind(pd, pdz)
-}
-write.csv(pd,  here(paste0("Results/RF-partialdependence-", response, "-occurrence-2.csv")), row.names=F)
-```
-
-#### WBBB
-```{r fit WBBB RF model, eval=F}
-response <- "agentWBBB"
-vars <- c("BA.ABLA", "QMD.ABLA", "propBA.ABLA")
-datBB.c <- df[df$focalhost=="Any",]
-
-splitit <- initial_split(datBB.c, prop=.7, strata=response)
-datz.train <- training(splitit)
-datz.test <- testing(splitit)
-datz.train.cv <- vfold_cv(datz.train, strata=response, v=10)
-
-# set formula
-BBoccurrence_recipe <- recipe(formula(paste(response, "~", paste(vars, collapse = " + "))), datz.train)
-
-  
-# set sample weights
-wts <- 1/(table(datBB.c[,response])/ max(table(datBB.c[,response])))
-wts <- wts/sum(wts)
-
-
-# set model
-rf_model <- rand_forest() %>% set_args( trees=tune(), min_n=tune()) %>% set_engine("ranger", importance = "permutation", probability=T, seed=913, sample.fraction=wts) %>% set_mode("classification") 
-
-# set the workflow
-rf_workflow <- workflow() %>% add_recipe(BBoccurrence_recipe) %>% add_model(rf_model)
-
-# tune model
-tgrid <- expand.grid(trees = c(100,500), min_n=c(10, 50, 100))
-rf_tune_results <- rf_workflow %>% tune_grid(resamples = datz.train.cv,  grid = tgrid, metrics = metric_set(roc_auc, accuracy, sens, spec))
-
-tuneres <- rf_tune_results %>% collect_metrics()
-
-param_best<- rf_tune_results %>% select_best(metric = "roc_auc")
-
-# Use backward selection to identify important variables
-#dfo.vsurf <- VSURF::VSURF(datz.train[,vars], factor(datz.train[,response]), RFimplem="ranger", parallel=T, ntree=param_best$trees, min.node.size=param_best$min_n)
-#registerDoSEQ()
-#vars.final <- unique(c(vars[dfo.vsurf$varselect.pred]))
-vars.final <- vars
-BBoccurrence_recipe_final <- recipe(formula(paste(response, "~", paste(vars.final, collapse = " + "))), data=datBB.c)
-  
-rf_model_final <- rand_forest() %>% set_args(trees=param_best$trees, min_n=param_best$min_n, splitrule="gini") %>% set_engine("ranger", importance = "permutation", probability=T, sample.fraction=wts) %>% set_mode("classification") 
-
-rf_workflow_final <- workflow() %>% add_recipe(BBoccurrence_recipe_final) %>% add_model(rf_model_final)
-rf_workflow_final_fit<- rf_workflow_final %>% last_fit(splitit, metrics=metric_set(roc_auc, accuracy, sens, spec)) #emulates the process where, after determining the best model, the final fit on the entire training set is needed and is then evaluated on the test set. 
-test_performance <- rf_workflow_final_fit %>% collect_metrics()
-write.csv(test_performance, here(paste0("Results/RF-testperformance-", response, "-occurrence-2.csv")), row.names=F)
-  
-# generate a confusion matrix for test set
-test_predictions <- rf_workflow_final_fit %>% collect_predictions()
-confusion <- test_predictions %>% conf_mat(response,estimate = .pred_class)
-
-write.csv(confusion$table, here(paste0("Results/RF-confusiontable-", response, "-occurrence-2.csv")), row.names=F)
-
-# variable importance
-final_model <- fit(rf_workflow_final, data=datz.train)
-ranger_obj <- pull_workflow_fit(final_model)$fit
-
-# generate predictions for entire dataset
-x <- datBB.c$PLT_CN
-x <- cbind(x, predict(ranger_obj, datBB.c)$predictions[,2])
-colnames(x) <- c("PLT_CN", "SBpred")
-write.csv(x, here(paste0("Results/RF-pred-", response, "-occurrence-2.csv")), row.names=F)
-          
-x <- as.data.frame(ranger_obj$variable.importance)
-write.csv(x, here(paste0("Results/RF-vimp-", response, "-occurrence-2.csv")), row.names=F)
-          
-# partial dependence
-pd <- NULL
-for(z in vars.final){
-  pdz <- partial(ranger_obj, train=datz.train, pred.var=z, which.class=strsplit(response, split="agent")[[1]][2], prob=T)
-  pdz$var <- z
-  colnames(pdz) <- c("value","yhat","var")
-  pd <- rbind(pd, pdz)
-}
-write.csv(pd,  here(paste0("Results/RF-partialdependence-", response, "-occurrence-2.csv")), row.names=F)
-```
-
-```{r determine suitable stands}
-MPBpred <- read.csv(here("Results/RF-pred-agentMPB-occurrence.csv"))
-SBpred <- read.csv(here("Results/RF-pred-agentSB-occurrence.csv"))
-WBBBpred <- read.csv(here("Results/RF-pred-agentWBBB-occurrence.csv"))
-
-BBpred <- merge(merge(MPBpred, SBpred, by="PLT_CN"), WBBBpred, by="PLT_CN")
-colnames(BBpred) <- c("PLT_CN", "MPBpred", "SBpred", "WBBBpred")
-
-threshold <-0.5
-BBpred$MPBsuitable <- ifelse(BBpred$MPBpred > threshold, "MPB", "absent")
-BBpred$SBsuitable <- ifelse(BBpred$SBpred > threshold, "SB", "absent")
-BBpred$WBBBsuitable <- ifelse(BBpred$WBBBpred >threshold, "WBBB", "absent")
-
-BBpred$agentsuitable <-  do.call(paste, c(BBpred[c("SBsuitable", "MPBsuitable", "WBBBsuitable")],sep="-"))
-BBpred$agentsuitable <- factor(BBpred$agentsuitable, levels=c("absent-absent-absent","absent-MPB-absent","SB-absent-absent", "SB-MPB-absent", "absent-absent-WBBB", "SB-absent-WBBB", "absent-MPB-WBBB", "SB-MPB-WBBB"), labels=c("none", "MPB", "SB", "MPB & SB", "WBBB", "SB & WBBB", "MPB & WBBB", "MPB, SB & WBBB"))
-
-
-BBpred$suitablehosts <- factor(BBpred$agentsuitable, levels=c("none", "MPB", "SB", "WBBB", "MPB & SB",  "MPB & WBBB", "SB & WBBB",  "MPB, SB & WBBB"), labels=c("none", "PICO", "PIEN", "ABLA","PICO & PIEN",  "PICO & ABLA", "PIEN & ABLA",  "PICO, PIEN, & ABLA"), ordered=T)
-
-```
-
-## Host co-occurrence
-
-### Given suitable stand conditions, is co-occurrence of suitable hosts common?
-```{r determine co-occurrence of suitable stands}
-bbo.dat<- merge(BBpred, df, id.vars="PLT_CN", all=T)
-bbo.dat <- bbo.dat[bbo.dat$focalagent=="Any",]
-cocount <-  as.data.frame(table(bbo.dat$agentsFplongrev))
-MPBco <-sum(cocount[cocount$Var1 %in% c("MPB & SB",  "MPB & WBBB","MPB, SB & WBBB"),]$Freq)
-SBco <-sum(cocount[cocount$Var1 %in% c("MPB & SB",  "SB & WBBB","MPB, SB & WBBB"),]$Freq)
-WBBBco <-sum(cocount[cocount$Var1 %in% c("MPB & WBBB",  "SB & WBBB","MPB, SB & WBBB"),]$Freq)
-
-cocount <-  as.data.frame(table(bbo.dat$suitablehosts))
-PICOco <-sum(cocount[cocount$Var1 %in% c("PICO & PIEN",  "PICO & ABLA","PICO, PIEN & ABLA"),]$Freq)
-PIENco <-sum(cocount[cocount$Var1 %in% c("PICO & PIEN",  "PIEN & ABLA","PICO, PIEN & ABLA"),]$Freq)
-ABLAco <-sum(cocount[cocount$Var1 %in% c("PICO & ABLA",  "PIEN & ABLA","PICO, PIEN & ABLA"),]$Freq)
-
-codat <- data.frame(agent =c( "MPB", "SB", "WBBB"), agentco=c(MPBco, SBco, WBBBco), hostco=c(PICOco, PIENco, ABLAco))
-
-
-bbo.dat$hostsFPshort<- bbo.dat$hostsFPlong
-bbo.dat$hostsFPshort <- factor(bbo.dat$hostsFPlong, levels=levels(bbo.dat$hostsFPlong), labels=c("PICO", "PIEN", "ABLA", "PICO\n&\nPIEN", "PICO\n&\nABLA", "PIEN\n&\nABLA", "PICO,\nPIEN,\n&\nABLA"))
-bbo.dat$agentsFplongrev <- bbo.dat$agentsFplong
-bbo.dat$agentsFplongrev <- factor(bbo.dat$agentsFplongrev, levels=rev(levels( bbo.dat$agentsFplong)))
-
-
-ggfreq <- ggplot(bbo.dat[bbo.dat$focalhost=="Any",], aes(x=hostsFPshort,fill=agentsFplongrev))+geom_bar()+theme(legend.title = element_blank())+xlab("hosts")+scale_fill_manual(values=p2col)
-
-ggsave( here("Results/Figures/FigureAgentfrequencybyhosts.jpg"), plot=ggfreq,   width=fig.width2,height=fig.width1.5,units="in")
-
-```
-
-### Is occurrence more likely or severity greater in stands with multiple hosts?
-
-```{r occurrence by suitable hosts}
-dfpred <- merge(BBpred, df, id.vars="PLT_CN", all=T)
-mpb <- as.data.frame(table(dfpred[dfpred$focalagent=="MPB","affected"], dfpred[dfpred$focalagent=="MPB","suitablehosts"]))
-sb <- as.data.frame(table(dfpred[dfpred$focalagent=="SB","affected"], dfpred[dfpred$focalagent=="SB","suitablehosts"]))
-wbbb <- as.data.frame(table(dfpred[dfpred$focalagent=="WBBB","affected"], dfpred[dfpred$focalagent=="WBBB","suitablehosts"]))
-any<- as.data.frame(table(dfpred[dfpred$focalagent=="Any","affected"], dfpred[dfpred$focalagent=="Any","suitablehosts"]))
-
-results <- NULL
-for(j in c("PICO & PIEN",  "PICO & ABLA", "PIEN & ABLA",  "PICO, PIEN, & ABLA")){
-  anyj <- any[any$Var2==j,]
-  mpbj <- mpb[mpb$Var2==j,]
-  sbj <- sb[sb$Var2==j,]
-  wbbbj <- wbbb[wbbb$Var2==j,]
-  
-  x <- prop.test(x=c(mpbj[1,3],anyj[1,3]), n=c(mpbj[1,3]+mpbj[2,3], anyj[1,3]+anyj[2,3]))
-
-  res <- data.frame(suitablehosts=NA, barkbeetle=NA, X=NA, p=NA, prop1=NA, prop2 =NA, lower=NA, upper=NA)
-  res$suitablehosts <-j
-  res$barkbeetle <- "MPB"
-  res$X <- x$statistic
-  res$p <- x$p.value
-  res$prop1 <- x$estimate[1]
-  res$prop2 <- x$estimate[2]
-  res$lower <- x$conf.in[1]
-  res$upper <- x$conf.in[2]
-  x <-NULL
-  results <- rbind(results, res)
-    
-  x <- prop.test(x=c(sbj[1,3],anyj[1,3]), n=c(sbj[1,3]+sbj[2,3], anyj[1,3]+anyj[2,3]))
-
-  res <- data.frame(suitablehosts=NA, barkbeetle=NA, X=NA, p=NA, prop1=NA, prop2 =NA, lower=NA, upper=NA)
-  res$suitablehosts <-j
-  res$barkbeetle <- "SB"
-  res$X <- x$statistic
-  res$p <- x$p.value
-  res$prop1 <- x$estimate[1]
-  res$prop2 <- x$estimate[2]
-  res$lower <- x$conf.in[1]
-  res$upper <- x$conf.in[2]
-  x <-NULL
-  results <- rbind(results, res)
-  
-   x <- prop.test(x=c(wbbbj[1,3],anyj[1,3]), n=c(wbbbj[1,3]+wbbbj[2,3], anyj[1,3]+anyj[2,3]), alternative="less")
-
-  res <- data.frame(suitablehosts=NA, barkbeetle=NA, X=NA, p=NA, prop1=NA, prop2 =NA, lower=NA, upper=NA)
-  res$suitablehosts <-j
-  res$barkbeetle <- "WBBB"
-  res$X <- x$statistic
-  res$p <- x$p.value
-  res$prop1 <- x$estimate[1]
-  res$prop2 <- x$estimate[2]
-  res$lower <- x$conf.in[1]
-  res$upper <- x$conf.in[2]
-  x <-NULL
-  results <- rbind(results, res)
-}
-
-results$p <- round(results$p,3)
-
-x <- dfpred[is.na(dfpred$suitablehosts)==FALSE,]
-x <- x[x$suitablehosts %in% c("PICO & PIEN",  "PICO & ABLA", "PIEN & ABLA",  "PICO, PIEN, & ABLA"),]
-x[x$suitablehosts == "PICO & PIEN" & x$focalagent=="WBBB","affected"]<- 0
-x[x$suitablehosts == "PICO & ABLA" & x$focalagent=="SB","affected"]<- 0
-x[x$suitablehosts == "PIEN & ABLA" & x$focalagent=="MPB","affected"]<- 0
-
-xx <- x %>% group_by(suitablehosts,focalagent) %>% count(affected)
-xxx <- x %>% group_by(suitablehosts) %>% count()
-
-xxxx <- merge(xx, xxx, by="suitablehosts")
-xxxx$prop <- xxxx$n.x/xxxx$n.y
-xxxx <- xxxx[xxxx$affected=="affected",]
-xxxx <- xxxx[,c(1,2,6)]
-colnames(xxxx) <- c("suitablehosts", "barkbeetle", "prop")
-
-resultsx <- merge(results, xxxx, id.vars=c("suitablehosts", "barkbeetle"), all=T)
-resultsx$barkbeetle <- factor(resultsx$barkbeetle, levels=c("MPB", 'SB', "WBBB", "Any"), ordered=T)
-resultsx <- resultsx[is.na(resultsx$prop)==FALSE,]
-resultsx$suitablehosts <- factor(resultsx$suitablehosts, levels=c("PICO & PIEN",  "PICO & ABLA", "PIEN & ABLA",  "PICO, PIEN, & ABLA"), labels=c("PICO & PIEN",  "PICO & ABLA", "PIEN & ABLA",  "PICO, PIEN, & ABLA"), ordered=T)
-resultsx$pplot <- ifelse(resultsx$p<0.05, "*", "")
-resultsx$pplot[is.na(resultsx$pplot) ==TRUE] <- ""
-
-
-ggoccurrence <- ggplot(resultsx, aes(x=barkbeetle,y=prop, fill=barkbeetle))+geom_bar(stat="identity")+theme(legend.title = element_blank())+geom_text(aes(label=pplot), vjust=-0.25,size=6)+facet_grid(.~suitablehosts, scales="free_x", space="free_x")+xlab("bark beetle species")+scale_fill_manual(values=c(p1col[1:3], gray(0.3)))+theme(legend.position = "none")+ylab("proportion of plots")
-
-ggsave( here("Results/Figures/FigureOccurrencebySuitablehosts.jpg"), plot=ggoccurrence,  width=fig.width2, height=fig.width1,units="in")
-
-```
-
-```{r severity by suitable hosts}
-dfpred <- merge(BBpred, df, id.vars="PLT_CN", all=T)
-mpb <- dfpred[dfpred$focalagent=="MPB" & dfpred$suitablehosts %in% c("PICO & PIEN",  "PICO & ABLA",   "PICO, PIEN, & ABLA"), ]
-sb <- as.data.frame(table(dfpred[dfpred$focalagent=="SB","affected"], dfpred[dfpred$focalagent=="SB","suitablehosts"]))
-wbbb <- as.data.frame(table(dfpred[dfpred$focalagent=="WBBB","affected"], dfpred[dfpred$focalagent=="WBBB","suitablehosts"]))
-any<- as.data.frame(table(dfpred[dfpred$focalagent=="Any","affected"], dfpred[dfpred$focalagent=="Any","suitablehosts"]))
-
-
-dfpred <- dfpred[dfpred$suitablehosts %in% c("PICO & PIEN",  "PICO & ABLA", "PIEN & ABLA",  "PICO, PIEN, & ABLA"), ]
-
-dfpred <- dfpred[dfpred$affected01=="affected",]
-
-
-results <- NULL
-for(j in c("PICO & PIEN",  "PICO & ABLA", "PIEN & ABLA",  "PICO, PIEN, & ABLA")){
-
-  x <- kruskal.test(propTBA~focalagent, data=dfpred[dfpred$suitablehosts ==j  & dfpred$focalagent %in% c('Any', 'MPB'),])
-  
-  res <- data.frame(suitablehosts=NA, barkbeetle=NA, X=NA, p=NA)
-  res$suitablehosts <-j
-  res$barkbeetle <- "MPB"
-  res$X <- x$statistic
-  res$p <- x$p.value
-  x <-NULL
-  results <- rbind(results, res)
-    
- 
-    x <- kruskal.test(propTBA~focalagent, data=dfpred[dfpred$suitablehosts ==j  & dfpred$focalagent %in% c('Any', 'SB'),])
-  
-  res <- data.frame(suitablehosts=NA, barkbeetle=NA, X=NA, p=NA)
-  res$suitablehosts <-j
-  res$barkbeetle <- "SB"
-  res$X <- x$statistic
-  res$p <- x$p.value
-  x <-NULL
-  results <- rbind(results, res)
-  
-      x <- kruskal.test(propTBA~focalagent, data=dfpred[dfpred$suitablehosts ==j  & dfpred$focalagent %in% c('Any', 'WBBB'),])
-  
-  res <- data.frame(suitablehosts=NA, barkbeetle=NA, X=NA, p=NA)
-  res$suitablehosts <-j
-  res$barkbeetle <- "WBBB"
-  res$X <- x$statistic
-  res$p <- x$p.value
-  x <-NULL
-  results <- rbind(results, res)
-  
-}
-
-results$pplot <- ifelse(results$p<0.05, "*", NA)
-
-dfpred$pplot <- NA
-for(j in c("PICO & PIEN",  "PICO & ABLA", "PIEN & ABLA",  "PICO, PIEN, & ABLA")){
-  
-  x <- dfpred[dfpred$suitablehosts ==j  & dfpred$focalagent == 'MPB',]
-  xplt <- x[x$propTBA==max(x$propTBA), "PLT_CN"][1]
-  dfpred[dfpred$suitablehosts ==j  & dfpred$focalagent == 'MPB' &dfpred$PLT_CN==xplt, ]$pplot <- results[results$suitablehosts==j & results$barkbeetle=='MPB', "pplot"]
-  
-  
-    x <- dfpred[dfpred$suitablehosts ==j  & dfpred$focalagent == 'SB',]
-  xplt <- x[x$propTBA==max(x$propTBA), "PLT_CN"][1]
-  dfpred[dfpred$suitablehosts ==j  & dfpred$focalagent == 'SB' &dfpred$PLT_CN==xplt, ]$pplot <- results[results$suitablehosts==j & results$barkbeetle=='SB', "pplot"]
-  
-    x <- dfpred[dfpred$suitablehosts ==j  & dfpred$focalagent == 'WBBB',]
-  xplt <- x[x$propTBA==max(x$propTBA), "PLT_CN"][1]
-  dfpred[dfpred$suitablehosts ==j  & dfpred$focalagent == 'WBBB' & dfpred$PLT_CN==xplt, ]$pplot <- results[results$suitablehosts==j & results$barkbeetle=='WBBB', "pplot"]
-    
-}
-
-dfpred <- dfpred[!(dfpred$suitablehosts == "PICO & PIEN" & dfpred$focalagent=="WBBB"),]
-dfpred <- dfpred[!(dfpred$suitablehosts == "PICO & ABLA" & dfpred$focalagent=="SB"),]
-dfpred <- dfpred[!(dfpred$suitablehosts == "PIEN & ABLA" & dfpred$focalagent=="MPB"),]
-
-
-ggseverity <- ggplot(dfpred, aes(x=focalagent, y=propTBA*100, fill=focalagent, colour=focalagent))+geom_boxplot(notch=T)+facet_grid(.~suitablehosts, scales="free_x", space="free_x")+xlab("bark beetle species")+scale_fill_manual(values=adjust_transparency(c(p1col[1:3], gray(0.3)), 0.5))+scale_colour_manual(values=c(p1col[1:3], gray(0.3)))+theme(legend.position = "none")+ylim(1,100)+geom_text(aes(label=pplot), vjust=-0.25,size=10, col="black")+ylab("Severity (% BA affected)")
-
-ggsave(here("Results/Figures/FigureSevertitybySuitablehosts.jpg"), plot=ggseverity, width=fig.width2,height=fig.width1,units="in")
-
-
-```
-
-## Agent co-occurrence
-
-### Given suitable stand conditions, is co-occurrence of multiple agents common?
-
-### What are the effects of multiple agents?
-```{r severity by suitable hosts}
-dfpred <- merge(BBpred, df, id.vars="PLT_CN", all=T)
-dfpred <- dfpred[dfpred$suitablehosts %in% c("PICO & PIEN",  "PICO & ABLA", "PIEN & ABLA",  "PICO, PIEN, & ABLA"), ]
-
-dfpred <- dfpred[dfpred$affected01=="affected",]
-
-dfpred <- dfpred[!(dfpred$suitablehosts=="PICO & PIEN" & dfpred$agentsF %in% c("WBBB", "MPB &\nWBBB", "SB &\nWBBB", "MPB,\nSB, &\nWBBB")),]
-
-dfpred <- dfpred[!(dfpred$suitablehosts=="PICO & ABLA" & dfpred$agentsF %in% c("SB", "MPB\n& SB", "SB &\nWBBB", "MPB,\nSB, &\nWBBB")),]
-
-dfpred <- dfpred[!(dfpred$suitablehosts=="PIEN & ABLA" & dfpred$agentsF %in% c("MPB", "MPB\n& SB", "MPB &\nWBBB", "MPB,\nSB, &\nWBBB")),]
-
-
-ggmultipelseverity <- ggplot(dfpred[dfpred$focalagent=="Any",], aes(x=agentsF, y=propTBA*100, fill=agentsF))+geom_boxplot()+facet_grid(.~suitablehosts, scales="free_x", space = "free_x")+theme(legend.position="none")
-
-ggsave(here("Results/Figures/FigureSeverityMultiple.jpg"), plot=ggmultipelseverity , width=fig.width2,height=fig.width1,units="in")
-```
-
-# Results
-
-### Patterns
-
-Across the Intermountain West, the most commonly occurring species was lodgepole pine, which was present in `r as.numeric(round(hosts[hosts$focalhost=="PICO", "freq"]*100,0))`% of plots, followed by subalpine fir (`r as.numeric(round(hosts[hosts$focalhost=="ABLA", "freq"]*100,0))`% of plots), and Engelmann spruce (`r as.numeric(round(hosts[hosts$focalhost=="PIEN", "freq"]*100,0))`% of plots). Given the presence of the focal host, the most commonly occurring bark beetle species was the MPB, which was found in `r PICOwMPB`% of plots with lodgepole pine. SB and WBBB, were found at much lower rates; SB was found in `r PIENwSB`% of plots with Engelmann spruce and WBBB was found in `r ABLAwWBBB`% of plots with subalpine fir.
-
-The most commonly occurring tree community included only lodgepole pine (n=`r as.numeric(hostgroups[hostgroups$hosts=="PICO", "n"])`), followed by plots with all three hosts (n=`r as.numeric(hostgroups[hostgroups$hosts=="PICO, PIEN,\n& ABLA", "n"])`) and Engelmann spruce-sublapine fir plots (n=`r as.numeric(hostgroups[hostgroups$hosts=="PIEN \n& ABLA", "n"])`) (Figs. \@ref(fig:FigSA) -  \@ref(fig:FigPresHosts)). Logepole pine-Engelmann spruce communities were the least common (n=`r as.numeric(hostgroups[hostgroups$hosts=="PICO\n& PIEN", "n"])`), followed by plots with only subalpine fir (n=`r as.numeric(hostgroups[hostgroups$hosts=="ABLA", "n"])`) and only Engelmann spruce ((n=`r as.numeric(hostgroups[hostgroups$hosts=="PIEN", "n"])`)).
-
-Consistent with diversity begets diversity hypothesis, the relative occurrence of bark beetle activity was greatest in stands with all three hosts (Fig \@ref(fig:FigPresHosts); `r as.numeric(round(affectednhosts[affectednhosts$nhosts==3, "freq"] *100, 0))`% of plots with all three hosts were affected by bark beetles). Stands with only one host were least likely to experience bark beetle infestation and stands with (`r as.numeric(round(affectednhosts[affectednhosts$nhosts==1, "freq"] *100, 0))`% of plots with only one host) and stands with two hosts were intermediate  (`r as.numeric(round(affectednhosts[affectednhosts$nhosts==2, "freq"] *100, 0))`% of plots with two hosts).
-
-However host richness also varied with other factors known to influence outbreak presence and severity, notably stand structure and composition (Fig. \@ref(fig:FigStandSC)), climate (Fig. \@ref(fig:FigClimate)), and landscape scale patterns of host availability and bark beetle pressure (Fig. \@ref(fig:FigPressure)). 
-
 ```{r FigSA, fig.cap = "The distribution of host species presence across the study area. Data are from the Individual Tree Species Atlas (Ellenwood et al. 2015) and represent conditions in ca. 2002.", out.width = "322.56pt"}
 knitr::include_graphics( here("Results/Figures/Figure-Studyarea.jpg"))
 ```
 
-## Co-occurrence of agents
+## Quatile comparison
+```{r select plots with large & abundant hosts, eval=F}
+df.sub <- df
 
-```{r FigCoOccurrence, fig.cap = "Co-occurrence",  out.width = "504.8pt"}
+PICO.BA.threshold <- quantile(df.sub[df.sub$agentMPB=="MPB", ]$BA.PICO, 0.1)
+PIEN.BA.threshold <- quantile(df.sub[df.sub$agentSB=="SB", ]$BA.PIEN, 0.1)
+ABLA.BA.threshold <- quantile(df.sub[df.sub$agentWBBB=="WBBB", ]$BA.ABLA, 0.1)
 
-knitr::include_graphics( here("Results/Figures/FigureAgentfrequencybyhosts.jpg"))
-```
+PICO.QMD.threshold <- quantile(df.sub[df.sub$agentMPB=="MPB", ]$QMD.PICO, 0.1)
+PIEN.QMD.threshold <- quantile(df.sub[df.sub$agentSB=="SB", ]$QMD.PIEN, 0.1)
+ABLA.QMD.threshold <- quantile(df.sub[df.sub$agentWBBB=="WBBB", ]$QMD.ABLA, 0.1)
 
-Few stands were affected by multiple agents. 
+# PICO, PIEN & ABLA
+df.sub.PICO.PIEN.ABLA <- df.sub[df.sub$BA.PICO >= PICO.BA.threshold & df.sub$BA.PIEN >= PIEN.BA.threshold & df.sub$BA.ABLA >= ABLA.BA.threshold, ]
 
-### Is occurrence more likely or severity greater in stands with multiple hosts?
+df.sub.PICO.PIEN.ABLA <- df.sub.PICO.PIEN.ABLA[df.sub.PICO.PIEN.ABLA$QMD.PICO >= PICO.QMD.threshold & df.sub.PICO.PIEN.ABLA$QMD.PIEN >= PIEN.QMD.threshold & df.sub.PICO.PIEN.ABLA$QMD.ABLA >= ABLA.QMD.threshold, ]
 
+df.sub.PICO.PIEN.ABLA$suitablehosts2 <- "PICO, PIEN & ABLA"
+df.sub.PICO.PIEN.ABLA$nhosts2 <- 3
 
-```{r FigOccurrence, fig.cap = "Severity",  out.width = "504.8pt"}
+# PICO & PIEN
+df.sub.PICO.PIEN<- df.sub[df.sub$BA.PICO >= PICO.BA.threshold & df.sub$BA.PIEN >= PIEN.BA.threshold, ]
 
-knitr::include_graphics( here("Results/Figures/FigureOccurrencebySuitablehosts.jpg"))
-```
+df.sub.PICO.PIEN <- df.sub.PICO.PIEN[df.sub.PICO.PIEN$QMD.PICO >= PICO.QMD.threshold & df.sub.PICO.PIEN$QMD.PIEN >= PIEN.QMD.threshold, ]
 
+df.sub.PICO.PIEN$suitablehosts2 <- "PICO & PIEN"
+df.sub.PICO.PIEN <- df.sub.PICO.PIEN[!(df.sub.PICO.PIEN$PLT_CN %in% df.sub.PICO.PIEN$PLT_CN), ]
+df.sub.PICO.PIEN$nhosts2 <- 2
 
-```{r FigSeverity, fig.cap = "Severity", out.width = "504.8pt"}
+# PICO & ABLA
+df.sub.PICO.ABLA<- df.sub[df.sub$BA.PICO >= PICO.BA.threshold & df.sub$BA.ABLA >= ABLA.BA.threshold, ]
 
-knitr::include_graphics( here("Results/Figures/FigureSevertitybySuitablehosts.jpg"))
-```
+df.sub.PICO.ABLA <- df.sub.PICO.ABLA[df.sub.PICO.ABLA$QMD.PICO >= PICO.QMD.threshold & df.sub.PICO.ABLA$QMD.ABLA >= ABLA.QMD.threshold, ]
 
+df.sub.PICO.ABLA$suitablehosts2 <- "PICO & ABLA"
+df.sub.PICO.ABLA$nhosts2 <- 2
 
-# Discussion
-
-# References
-
-<div id="refs"></div>
-
-## Supplement
-### Randon Forest Modeling
-```{r FigPartial,  fig.cap = "A caption", out.width = "504.8pt"}
-MPBpp <- read.csv(here("Results/RF-partialdependence-agentMPB-occurrence.csv"))
-MPBpp$focalagent <- "MPB"
-SBpp <- read.csv(here("Results/RF-partialdependence-agentSB-occurrence.csv"))
-SBpp$focalagent <- "SB"
-WBBBpp <- read.csv(here("Results/RF-partialdependence-agentWBBB-occurrence.csv"))
-WBBBpp$focalagent <- "WBBB"
-
-ppdat <- rbind(rbind(MPBpp, SBpp), WBBBpp)
-ppdat$var[ppdat$var %in% paste0("BA.", c("PICO", "PIEN", "ABLA"))] <- "BA"
-ppdat$var[ppdat$var %in% paste0("QMD.", c("PICO", "PIEN", "ABLA"))] <- "QMD"
-ppdat$var[ppdat$var %in% paste0("propBA.", c("PICO", "PIEN", "ABLA"))] <- "propBA"
-
-x <- df[!df$focalagent=="Any",]
-x$propBA <- x$BA.host/x$BA.total
-x <- x[,c("QMD.host", "propBA", "BA.host", "focalagent", "affected01")]
-x$affected01 <- ifelse(x$affected01=="affected", 1, 0)
-
-xm <- melt(x, id.vars=c("focalagent", "affected01"))
-colnames(xm) <- c("focalagent", "affected01", "var", "value")
-xm$var <- factor(xm$var, levels=c("QMD.host", "propBA", "BA.host"), labels=c("QMD", "propBA", "BA"))
-
-pBA1 <- ggplot(ppdat[ppdat$var=="BA",], aes(x=value, y=yhat, col=focalagent))+geom_smooth()+scale_color_manual(values=p1col)+theme(legend.position="none")+ylab("probability of occurrence")+theme(axis.title.x=element_blank(),axis.text.x=element_blank() )
-
-pBA2 <- ggplot(xm[xm$var=="BA",],aes(x=value, y=focalagent, fill=interaction(focalagent, affected01)))+geom_boxplot()+scale_fill_manual(values=c(adjust_transparency(p1col[1:3], alpha=0.25), p1col[1:3]))+theme(legend.position="none")+ylab("bark beetle")+xlab("basal area")
-
-pQMD1 <- ggplot(ppdat[ppdat$var=="QMD",], aes(x=value, y=yhat, col=focalagent))+geom_smooth()+scale_color_manual(values=p1col)+theme(legend.position="none")+ylab("probability of occurrence")+theme(axis.title.x=element_blank(),axis.text.x=element_blank() )
-
-pQMD2 <- ggplot(xm[xm$var=="QMD",],aes(x=value, y=focalagent, fill=interaction(focalagent, affected01)))+geom_boxplot()+scale_fill_manual(values=c(adjust_transparency(p1col[1:3], alpha=0.25), p1col[1:3]))+theme(legend.position="none")+ylab("")+xlab("QMD")
-
-ppropBA1 <- ggplot(ppdat[ppdat$var=="propBA",], aes(x=value, y=yhat, col=focalagent))+geom_smooth()+scale_color_manual(values=p1col)+theme(legend.position="none")+ylab("probability of occurrence")+theme(axis.title.x=element_blank(),axis.text.x=element_blank() )
-
-ppropBA2 <- ggplot(xm[xm$var=="propBA",],aes(x=value, y=focalagent, fill=interaction(focalagent, affected01)))+geom_boxplot()+scale_fill_manual(values=c(adjust_transparency(p1col[1:3], alpha=0.25), p1col[1:3]))+theme(legend.position="none")+ylab("")+xlab("propBA")
+df.sub.PICO.ABLA<- df.sub.PICO.ABLA[!(df.sub.PICO.ABLA$PLT_CN %in% df.sub.PICO.PIEN.ABLA$PLT_CN), ]
 
 
-ppplot <- pBA1  + pQMD1 +theme(axis.title.y=element_blank(),axis.text.y=element_blank()) +ppropBA1 +theme(axis.title.y=element_blank(),axis.text.y=element_blank())+ pBA2 + pQMD2 +theme(axis.text.y=element_blank())  + ppropBA2 +theme(axis.text.y=element_blank()) + plot_layout(ncol=3, heights=c(2,1))
+# PIEN & ABLA
+df.sub.PIEN.ABLA<- df.sub[df.sub$BA.PIEN >= PIEN.BA.threshold & df.sub$BA.ABLA >= ABLA.BA.threshold, ]
 
-ggsave(here("Results/Figures/PartialDependence.jpg"), plot=ppplot, width=fig.width2,height=fig.width1,units="in")
-knitr::include_graphics(here("Results/Figures/PartialDependence.jpg"))
+df.sub.PIEN.ABLA <- df.sub.PIEN.ABLA[df.sub.PIEN.ABLA$QMD.PIEN >= PIEN.QMD.threshold & df.sub.PIEN.ABLA$QMD.ABLA >= ABLA.QMD.threshold, ]
+
+df.sub.PIEN.ABLA$suitablehosts2 <- "PIEN & ABLA"
+df.sub.PIEN.ABLA$nhosts2 <- 2
+
+df.sub.PIEN.ABLA <- df.sub.PIEN.ABLA[!(df.sub.PIEN.ABLA$PLT_CN %in% df.sub.PICO.PIEN.ABLA$PLT_CN), ]
+
+###
+df.focal2 <- rbind(df.sub.PICO.ABLA, df.sub.PICO.PIEN)
+df.focal2 <- rbind(df.focal2, df.sub.PICO.PIEN)
+df.focal2 <- rbind(df.focal2, df.sub.PICO.PIEN.ABLA)
+
+## Affected hosts
+affectedhosts2 <- df.focal2 %>% group_by(suitablehosts2, afp2colfected) %>% summarise(n = n())%>% mutate(freq = prop.table(n))
+affectedhosts2[affectedhosts2$affected=="affected",]
+affectednhosts2 <- df.focal2 %>% group_by(nhosts2, affected) %>% summarise(n = n())%>% mutate(freq = prop.table(n))
+affectednhosts2[affectednhosts2$affected=="affected",]
 
 
 ```
-
-### Comparison of stand structure and composition, climate, and regional bark beetle activity  
-```{r FigStandSC,  fig.cap = "A caption", out.width = "322.56pt", eval=F}
-datBB.c <-df.sub[!df.sub$focalhost=="Any",] 
-
-QMD.melt <- melt(datBB.c[,c("hosts",paste0("QMD.", c("PIEN", "PICO", "ABLA")))], "hosts")
-QMD.melt$variable <- factor(QMD.melt$variable, levels=paste0("QMD.", c("PICO","PIEN",  "ABLA")), labels=c("PICO", "PIEN", "ABLA"), ordered=T)
-QMD.melt$facet <- "QMD"
-
-TPH.melt <- melt(datBB.c[,c("hosts",paste0("TPH.", c("PIEN", "PICO", "ABLA")))], "hosts")
-TPH.melt$variable <- factor(TPH.melt$variable, levels=paste0("TPH.", c("PICO","PIEN",  "ABLA")), labels=c("PICO", "PIEN", "ABLA"), ordered=T)
-TPH.melt$facet <- "TPH"
-
-BA.melt <- melt(datBB.c[,c("hosts",paste0("BA.", c("PIEN", "PICO", "ABLA")))], "hosts")
-BA.melt$variable <- factor(BA.melt$variable, levels=paste0("BA.", c("PICO","PIEN",  "ABLA")), labels=c("PICO", "PIEN", "ABLA"), ordered=T)
-BA.melt$facet <- "BA"
-
-propBA.melt <-datBB.c[,c("hosts",paste0("BA.", c("PIEN", "PICO", "ABLA", "total")))]
-propBA.melt$propBA.PIEN <- propBA.melt$BA.PIEN / propBA.melt$BA.total *100
-propBA.melt$propBA.ABLA <- propBA.melt$BA.ABLA / propBA.melt$BA.total *100
-propBA.melt$propBA.PICO <- propBA.melt$BA.PICO / propBA.melt$BA.total *100
-  
-propBA.melt <-  melt(propBA.melt[,c("hosts",paste0("propBA.", c("PIEN", "PICO", "ABLA")))], "hosts")
-propBA.melt$variable <- factor(propBA.melt$variable, levels=paste0("propBA.", c("PICO","PIEN",  "ABLA")), labels=c("PICO", "PIEN", "ABLA"), ordered=T)
-propBA.melt$facet <- "BA dominance (%)"
-
-plotdat <- rbind(propBA.melt, TPH.melt, BA.melt, QMD.melt)
-
-ggss <- ggplot(plotdat[plotdat$value>0,], aes(x=hosts, y=value,fill=variable))+geom_boxplot(outlier.size = 0.2,color="black",lwd=0.2,position = position_dodge(preserve = "single"))+scale_fill_brewer(palette ="BuPu")+ylab("value")+xlab("")+facet_wrap(.~facet, scales="free_y", ncol=1)+theme(legend.position = "bottom", legend.title=element_blank())
-
-ggsave(here("Results/Figures/Figure-HostStructureByhostIdentity.jpg"), plot=ggss , width=fig.width1.5, height=fig.width1*2, units="in")
-knitr::include_graphics(here("Results/Figures/Figure-HostStructureByhostIdentity.jpg"))
-```
-
-
-```{r generate maps, eval=F}
-bbo.dat<- merge(BBpred, df, id.vars="PLT_CN", all=T)
-
-df.all <- bbo.dat[bbo.dat$focalhost == "Any", ]
-
-df.all.sf <- st_as_sf(df.all, coords = c("LON", "LAT"), crs = 4326)
-
-
-states <-st_read(here("Data/Spatial/States/cb_2018_us_state_20m.shp"),quiet=T)
-IMW <- states[states$STUSPS %in% c("AZ", "CO", "ID","MT", "NM", "UT", "WY"),]
-
-ext <- as.matrix(extent(IMW))
-#ext[1,1] <- ext[1,1] -0.25
-#ext[1,2] <- ext[1,2] +0.25
-#ext[2,1] <- ext[2,1] -1
-#ext[2,2] <- ext[2,2] +1
-
-
-map1 <- tm_shape(IMW, bbox=tmaptools::bb(ext)) +  tm_fill(col=grey(level=0.95)) +  tm_borders()  + tm_shape(df.all.sf[df.all.sf$hostsFPlong=="PICO",]) +tm_dots(col="agentsFplong", legend.show = FALSE,size=.0025, palette=rev(p2col)) +tm_compass(position=c(0.9, 0.02), just=c("center", "bottom"), text.size=0.5, size=2)+tm_layout(main.title = "PICO",main.title.size=0.5,main.title.position="center")
-
-map2 <- tm_shape(IMW, bbox=tmaptools::bb(ext)) +  tm_fill(col=grey(level=0.95)) +  tm_borders()  + tm_shape(df.all.sf[df.all.sf$hostsFPlong=="PIEN",]) +tm_dots(col="agentsFplong", legend.show = FALSE,size=.0025, palette=rev(p2col)) +tm_layout(main.title = "PIEN",main.title.size=0.5,main.title.position="center")
-
-map3 <- tm_shape(IMW, bbox=tmaptools::bb(ext)) +  tm_fill(col=grey(level=0.95)) +  tm_borders()  + tm_shape(df.all.sf[df.all.sf$hostsFPlong=="ABLA",]) +tm_dots(col="agentsFplong", legend.show = FALSE,size=.0025, palette=rev(p2col)) +tm_layout(main.title = "ABLA",main.title.size=0.5, main.title.position="center")
-
-map4 <- tm_shape(IMW, bbox=tmaptools::bb(ext)) +  tm_fill(col=grey(level=0.95)) +  tm_borders()  + tm_shape(df.all.sf[df.all.sf$hostsFPlong=="PICO & PIEN",]) +tm_dots(col="agentsFplong", legend.show = FALSE,size=.0025, palette=rev(p2col)) +tm_layout(main.title = "PICO & PIEN",main.title.size=0.5,main.title.position="center")
-
-map5 <- tm_shape(IMW, bbox=tmaptools::bb(ext)) +  tm_fill(col=grey(level=0.95)) +  tm_borders()  + tm_shape(df.all.sf[df.all.sf$hostsFPlong=="PICO & ABLA",]) +tm_dots(col="agentsFplong", legend.show = FALSE,size=.0025, palette=rev(p2col)) +tm_layout(main.title = "PICO & ABLA", main.title.size=0.5, main.title.position="center")
-
-map6 <- tm_shape(IMW, bbox=tmaptools::bb(ext)) +  tm_fill(col=grey(level=0.95)) +  tm_borders()  + tm_shape(df.all.sf[df.all.sf$hostsFPlong=="PIEN & ABLA",]) +tm_dots(col="agentsFplong", legend.show = FALSE,size=.0025, palette=rev(p2col)) +tm_layout(main.title = "PIEN & ABLA", main.title.size=0.5, main.title.position="center")
-
-map7 <- tm_shape(IMW, bbox=tmaptools::bb(ext)) +  tm_fill(col=grey(level=0.95)) +  tm_borders()  + tm_shape(df.all.sf[df.all.sf$hostsFPlong=="PICO, PIEN, & ABLA",]) +tm_dots(col="agentsFplong", legend.show = FALSE,size=.0025, palette=rev(p2col))+tm_layout(main.title = "PICO, PIEN, & ABLA", main.title.size=0.5, main.title.position="center")
-
-legend.map <- tm_shape(IMW, bbox=tmaptools::bb(ext)) +  tm_fill(col=grey(level=0.95)) +  tm_borders()  + tm_shape(df.all.sf[df.all.sf$hostsFPlong=="PICO, PIEN, & ABLA",]) +tm_dots(col="agentsFplong", size=4, title="bark beetle species",  palette=rev(p2col))+tm_layout(legend.only = TRUE,legend.text.size = 0.5,legend.title.size = 0.65)+tm_scale_bar(position = c(0.5,0.16), text.size=0.5, just="center", breaks=c(0,250,500))
-
-Fig.file <- here("Results/Figures/Figure-Map.jpg")
-jpeg(Fig.file, width=fig.width1.5, height=fig.width2/2, units="in")
-tmap_arrange(map1, map2,map3, map4, map5, map6, map7,legend.map, nrow=2)
-whatever <- dev.off()
-
-```
-
-```{r FigMap, fig.cap="a caption", out.width = "504.8pt"}
-knitr::include_graphics(here("Results/Figures/Figure-Map.jpg"))
-```
-
 
 
