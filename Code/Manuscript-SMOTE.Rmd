@@ -146,59 +146,48 @@ dir.create(here("Results/Figures/"), showWarnings = FALSE)
 
 # Abstract
 
+Key findings
+
+- 
+
 # Keywords
 
 
 # Introduction
 
-Paragraph 1: Broad applied context
+Paragraph 1: Theoretical context - plant & insect interactions
 
-In this context there is a particular need to understand interactions between outbreaks of irruptive insects, which in recent years (2003-2012) have affected 85 million hectares of forest globally, or ca. 18 million hectares more than wildfire (van Lierop et al. 2015). 
+Many studies have sought to understand how biodiversity influences interactions between natural enemies and their resources. In the case of plant-herbivore interactions, greater plant diversity often reduces herbivory on plants at both the individual and population level [i.e., 'associational resistance', @barbosa_associational_2009]. This is hypothesized to occur when insect herbivores, particularly specialists, are less likely to find and stay in areas where their hosts are less abundant [i.e., 'resource concentration hypothesis', @root_organization_1973]. This may occur if insects are less likely to encounter their host due to decrease in host frequency or abundance [i.e. 'host dilution effect', @], heterospecific neighbors chemically mask host trees [i.e. 'host apparency hypothesis', @castagneryrol_effects_2014], and/or mixed stands favor greater abundance of herbivore natural enemies [i.e., 'enemies hypothesis', @elton_ecology_1985, @staab_influence_2020]. 
 
-- insect outbreaks are causing widespread tree mortality in temperate forest worldwide
-- future changes in climate are expected to increase tree mortality
-- forests provide key ecosystem services
-- management
+#However, increased plant diversity may also result in an increase in herbivore richness ['resource specialization hypothesis', @keddy_plant_1984]. 
 
-Paragraph 2: Theoretical context - diversity & natural enemies
-
-Many studies have sought to understand how community diversity influences interactions between natural enemies and their resources. In the case of plant-herbivore interactions, the greater plant diversity often reduces herbivory effects on plants at both the individual and population level [i.e. 'associational resistance, @barbosa_associational_2009, @jactel_tree_2021]. The resource concentration hypothesis suggests that specialists insect herbivores are less likely to find and stay in stands where their hosts are less abundant [@root_organization_1973]. This may occur if insects are less likely to find a host tree due [i.e. 'host dilution effect', @] or chemical masking of the focal tree by heterospecific neighbors [i.e. 'host apparency hypothesis', @Castagneryrol_effects_2014]
-
-[i.e., 'resource concentration hypothesis', @root_organization_1973].
-
-However, benefits provided by mixtures are less evident for larger-scale disturbances [@jactel_tree_2021]
-suggesting that changes in the structure of host communities, rather than biodiversity per se, can explain when a dilution effect should be observed. 
+Yet little research has examined community-level outcomes, which are often hard to quantify because of the number of potential interactions increases dramatically with increasing community diversity, particularly when natural enemies are generalists. Further, the effects of different natural enemies on their focal host populations often differ greatly, due to differences in susceptibility and mortality rates and the availability and quality (as viewed by their natural enemies) of resource communities. Critically, community-level outcomes may drive ecosystem processes, particularly when community diversity is low and plant-herbivore relationships are highly dynamic. In this context there is a particular need to understand the effects of tree diversity on outbreaks of irruptive insects, which in recent years (2003-2012) have affected 85 million hectares of forest globally, or ca. 18 million hectares more than wildfire [@van_lierop_global_2015], resulting in widespread changes in carbon sequestration [e.g., @kurz_mountain_2008], timber production [e.g. @schowalter_insect_2012], and water quality [e.g., @Mikkelson_bark_2013], among other things. 
 
 
-1 - associational resistance - the abundance or damage of herbivores is lower when plant diversity is greater [@barbosa_associational_2009, @jactel_tree_2021]
-hypotheses:
-1 - resource concentration: the presence of heterospecific neighbors around a tree of a focal species grown in mixed stands leads to a lower probability of host tree finding by insect herbivores due to lower host abundance or frequency [@root_organization_1973]
-2 - host apparency: 
-3 - decoy: preference for non-host trees
+Paragraph 2: Bark beetles 
 
+Bark beetles (Curculionidae: Scolytinae) are among the few native insect species that can kill large numbers of trees in a single year. For instance in the western United States, recent outbreaks of native bark beetles have killed 3.8 billion trees [1997-2018; @hicke_characterizing_2020]. Bark beetles bore through the bark, where they mate and oviposit their eggs. Concurrently, bark beetles introduce pathogenic fungi Larvae feeding upon the phloem and fungal spread stop the translocation of water and nutrients and cause tree death. Conifer defense against bark beetles consists primarily of resin exudation that physically expels the beetle and allelochemicals, which repel or kill beetles. To overcome these defenses and colonize live trees, bark beetles rely on a mass-attack strategy, where pioneering beetles emit aggregation pheromones that call conspecifics to the tree. Typically bark beetles exist at low population levels and attack weakened trees, but as populations increase bark beetles attack increasingly better defended trees. Such severe mortality occurs only during outbreaks when pheromone-mediated mass-attack allows bark beetles to overcome tree defenses. 
 
-H
-Most studies have focused on individual- or population-level outcomes. 
-
-For instance, increased host community diversity may either increase or decrease the susceptibility of individuals to their natural enemies. 
-
-At the population-scale these effects may either scale-up or result in counter-intuitive effects. However, little research has examined community-level outcomes, which are often hard to quantify because of the number of potential interactions increases dramatically with increasing community diversity, particularly when natural enemies are generalists. Further, the effects of different natural enemies on their focal host populations often differ greatly, due to differences in susceptibility and mortality rates and the availability and quality (as viewed by their natural enemies) of resource communities. Critically, community-level outcomes may drive ecosystem processes, particularly when community diversity is low and natural enemy-resource relationships are highly dynamic. 
-
-*** paragraph about irruptive species and community host diversity*** 
-- stand scale
-- landscape scale
-
-To better understand how community diversity influences interactions between natural enemies and their resources, we use a natural system with inherently low resource and natural enemy diversity. Specifically our research focuses on tree mortality due to three bark beetle species, the mountain pine beetle (*Dendroctonus ponderosae*), spruce beetle (*D. rufipennis*), and western balsam bark beetle (*Dryocoetes confusus*), which in subalpine forests of Western North America predominantly attack lodgepole pine (*Pinus contorta*), Engelmann spruce (*Picea engelmannii*), and subalpine fir (*Abies lasiocarpa*), respectively. We use this system to ask whether host tree richness or identity influence the occurrence and severity of tree mortality due to bark beetles at the community-scale? We hypothesize that
-greater host richness will increase the probability of outbreak occurrence 
-
-Bark beetles (Curculionidae: Scolytinae) are among the few native insect species that can kill large numbers of trees in a single year. Bark beetles bore through the bark, where they mate and oviposit their eggs. Concurrently, bark beetles introduce pathogenic fungi Larvae feeding upon the phloem and fungal spread stop the translocation of water and nutrients and cause tree death. Conifer defense against bark beetles consists primarily of resin exudation that physically expels the beetle and allelochemicals, which repel or kill beetles. To overcome these defenses and colonize live trees, bark beetles rely on a mass-attack strategy, where pioneering beetles emit aggregation pheromones that call conspecifics to the tree. Typically bark beetles exist at low population levels and attack weakened trees, but as populations increase bark beetles attack increasingly better defended trees.For instance, in the continental western United States bark beetles have killed more than XXXX trees over the past X decades. Such severe mortality occurs only during outbreaks when pheromone-mediated mass-attack allows bark beetles to overcome tree defenses. 
 
 For instance, a primary goal of the Western Bark Beetle is to promote resilience of forests to bark beetle outbreaks by increasing the diversity of age classes and tree species. 
 
 
-To test these hypotheses, we used a large dataset consisting of XXX,XXX plots established by the United States Forest Service Forest Inventory and Analysis Program (FIA; https://www.fia.fs.fed.us/). 
+Paragraph 3: Bark beetles 
+
+To better understand how community diversity influences interactions between bark beeetles and their resources, we use a natural system with inherently low tree and bark beetle diversity. Specifically our research focuses on tree mortality due to three bark beetle species, the mountain pine beetle (*Dendroctonus ponderosae*), spruce beetle (*D. rufipennis*), and western balsam bark beetle (*Dryocoetes confusus*), which in subalpine forests of Western North America predominantly attack lodgepole pine (*Pinus contorta*), Engelmann spruce (*Picea engelmannii*), and subalpine fir (*Abies lasiocarpa*), respectively. We use this system to ask:
+
+(1) Is co-occurrence of multiple trees susceptible to bark beetle attack common?
+(2) How often do stand conditions susceptible to multiple bark beetles occur?
+(3) Given stand stand conditions susceptible to multiple bark beetles, does the  the occurrence or severity of cumulative bark beetle mortality 
 
 We expect that co-occurrence of trees of different host species will be common, but co-occurrence of stand conditions suitable for multiple bark beetle species will not. Given stands where conditions are suitable for multiple bark beetle species, occurrence of bark beetle-driven tree mortality will be greater (i.e. diversity begets diversity), but severity will be lower (i.e. resource concentration). 
+
+host tree richness or identity influence the occurrence and severity of tree mortality due to bark beetles at the community-scale? 
+
+
+To test these hypotheses, we used a large dataset consisting of XXX,XXX plots established by the United States Forest Service Forest Inventory and Analysis Program (FIA; https://www.fia.fs.fed.us/). Specifically we ask: 
+
+
 
 We also expected the severity of bark beetle infestation to vary with the number of agents present, but with two alternative hypotheses. If the population dynamics of each bark beetle species are independent, then stands with multiple agents will experience higher tree mortality than stands with only one agent (i.e. additive effects). Alternatively, lower tree mortality may occur if concurrent outbreaks of bark beetles of different species cause semiochemical confusion or if competitive release increases tree defensive capacity. 
 
@@ -644,6 +633,12 @@ df$propBA.ABLA <- df$BA.ABLA / df$BA.total *100
 ```
 
 ### Model the suitable stand conditions
+
+However, benefits provided by mixtures are less evident for larger-scale disturbances [@jactel_tree_2021]
+suggesting that changes in the structure of host communities, rather than biodiversity per se, can explain when a dilution effect should be observed. 
+
+
+
 Construct random forest models using synthetic minority oversampling technique (SMOTE), an approach for dealing with imbalanced data. The SMOTE approach oversamples the minority class by synthesizing new cases from the minority class. We compared this approach with two other common approaches for dealing with imbalanced data in a random forest framework - balanced and weighted random forests and selected the approach that classified affected plots with the greatest accuracy. 
 
 ```{r fit MPB RF model SMOTE, eval=F}
@@ -1337,7 +1332,8 @@ BBpred$suitablehosts <- factor(BBpred$agentsuitable, levels=c("none", "MPB", "SB
 ```
 
 # Results
-## Is co-occurrence of multiple hosts common?
+
+## Do stand conditions suitable for multiple outbreaks commonly co-occur?
 ```{r describe frequency of hosts and agents, eval=T}
 ## Hosts
 hosts <- df[!df$focalhost=="Any",] %>% group_by(focalhost) %>% summarise(n = n())%>%mutate(freq = n / sum(n))
@@ -1379,22 +1375,6 @@ p1
 whatever <- dev.off()
 ```
 
-```{r}
-gghostgroups <- ggplot(hostgroups, aes(x=hosts, y=freq, fill=hosts))+geom_bar(stat="identity")+scale_fill_manual(values=c("#8c510a", "#bf812d", "#dfc27d", "#80cdc1", "#35978f", "#01665e", "#003c30"))+theme(legend.position="none")+xlab("")+ylab("frequency")
-
-ggsave( here("Results/Figures/FigureHostFreq.jpg"), plot=gghostgroups,   width=fig.width1,height=fig.width1*0.75,units="in")
-```
-
-Yes, 66% (n=5,850) FIA plots had at least two host species present. Subalpine fir was most likely to occur with other hosts (50% of stands), followed by Engelmann spruce (45% stands), and lodgepole pine (36% of stands) (Fig. \@ref(fig:FigHostFreq)).
-
-```{r FigHostFreq, fig.cap = ".", out.width = "322.56pt"}
-knitr::include_graphics( here("Results/Figures/FigureHostFreq.jpg"))
-```
-
-## Is co-occurrence of the stands conditions suitable for multiple bark beetle species common?
-
-20% of stands were suitable for more than one bark beetle species. Conditions suitable for WBBB were most likely to co-occur with conditions suitable for another bark beetle (17% of stands)
-
 ```{r determine co-occurrence of suitable stands}
 bbo.dat<- merge(BBpred, df, id.vars="PLT_CN", all=T)
 bbo.dat <- bbo.dat[bbo.dat$focalagent=="Any",]
@@ -1411,17 +1391,37 @@ bbo.sub <- bbo.dat[!bbo.dat$suitablehosts=="none",]
 
 bbo.sub$suitablehostsP <- factor(bbo.sub$suitablehosts, levels=levels(bbo.sub$suitablehosts)[-1], labels=c("PICO", "PIEN", "ABLA", "PICO\n&\nPIEN", "PICO\n&\nABLA", "PIEN\n&\nABLA", "PICO,\nPIEN,\n&\nABLA"))
 
+suitablehostgroups <- bbo.sub %>% group_by(suitablehostsP) %>% summarise(n = n())%>%mutate(freq = n / sum(n))
+
+
+```
+
+```{r}
+gghostgroups <- ggplot(hostgroups, aes(x=hosts, y=freq, fill=hosts))+geom_bar(stat="identity")+scale_fill_manual(values=c("#8c510a", "#bf812d", "#dfc27d", "#80cdc1", "#35978f", "#01665e", "#003c30"))+theme(legend.position="none")+xlab("")+ylab("frequency")
+
 ggfreq <- ggplot(bbo.sub, aes(x=suitablehostsP,fill=suitablehostsP))+geom_bar()+theme(legend.title = element_blank())+xlab("hosts")+scale_fill_manual(values=c("#8c510a", "#bf812d", "#dfc27d", "#80cdc1", "#35978f", "#01665e", "#003c30"))+theme(legend.position="none")
 
 ggsave( here("Results/Figures/FigureSuitable.jpg"), plot=ggfreq,width=fig.width1,height=fig.width1*0.75,units="in")
+
+
+ggsave( here("Results/Figures/FigureHostFreq.jpg"), plot=gghostgroups,   width=fig.width1,height=fig.width1*0.75,units="in")
+
+colnames(suitablehostgroups) <- colnames(hostgroups)
+hostgroups$var <- "individual host"
+suitablehostgroups$var <- "suitable host"
+
+hosts.plot.dat <- rbind(hostgroups, suitablehostgroups)
+
+
+gghostgroups <- ggplot(hosts.plot.dat, aes(x=hosts, y=n, fill=var))+geom_bar(stat="identity", position="dodge")+scale_fill_manual(values=c("grey", "black"))+ylab("frequency")+theme(legend.position="bottom")+theme(legend.title=element_blank(), axis.title.x=element_blank())
+ggsave( here("Results/Figures/FigureHostCo.jpg"), plot=gghostgroups,   width=fig.width1, height=fig.width1*0.75, units="in")
 ```
 
-(Fig. \@ref(fig:FigureSuitable)).
+Across the 10,439 FIA plots with one of the target host species, 66% (n=5,850) contained at least two of the target host species (Fig. \@ref(fig:FigHostFreq)). Subalpine fir was most likely to occur with other target host species (50% of plots), followed by Engelmann spruce (45% plots), and lodgepole pine (36% of stands). However, only 21% of all plots (n=2,163) were suitable for more than one bark beetle species. Conditions suitable for infestation in subalpine fir were most likely to co-occur with conditions suitable for infestation in another tree species (17% of stands).
 
-```{r FigureSuitable, fig.cap = ".", out.width = "322.56pt"}
-knitr::include_graphics( here("Results/Figures/FigureSuitable.jpg"))
+```{r FigHostFreq, fig.cap = "The frequency of plots by host identity. Gray bars indicate host species were present (i.e., at least one individual of the focal species was present within the plot). Black bars indicate  stand structure and composition conditions were conducive to bark beetle infestation in focal tree species. For host identities, PICO is lodgepole pine, PIEN is Engelmann spruce, and ABLA is subalpine fir.", out.width = "244.8pt"}
+knitr::include_graphics( here("Results/Figures/FigureHostCo.jpg"))
 ```
-
 
 ## Is occurrence or severity cumulative bark beetle mortality greater in stands with multiple hosts?
 
@@ -1511,18 +1511,17 @@ resultsx$pplot[is.na(resultsx$pplot) ==TRUE] <- ""
 
 ggoccurrence <- ggplot(resultsx, aes(x=barkbeetle,y=prop, fill=barkbeetle))+geom_bar(stat="identity")+theme(legend.title = element_blank())+geom_text(aes(label=pplot), vjust=-0.25,size=6)+facet_grid(.~suitablehosts, scales="free_x", space="free_x")+xlab("bark beetle species")+scale_fill_manual(values=c(p1col[1:3], gray(0.3)))+theme(legend.position = "none")+ylab("proportion of plots")
 
-ggsave( here("Results/Figures/FigureOccurrencebySuitablehosts.jpg"), plot=ggoccurrence,  width=fig.width2, height=fig.width1*0.66,units="in")
+ggsave( here("Results/Figures/FigureOccurrencebySuitablehosts.jpg"), plot=ggoccurrence,  width=fig.width2, height=fig.width1*0.5,units="in")
 
 ```
 
-Given suitable stand conditions for multiple agents, the probability of occurrence  of any agent was significantly greater than the probability of a single agent \@ref(fig:FigureSuitable).
-```{r FigOccurrence, fig.cap = "Severity",  out.width = "504.8pt"}
+Given suitable stand conditions for multiple agents, the probability of occurrence of bark beetle attributed mortality was significantly greater than the probability of a single bark beetle species \@ref(fig:FigureOccurrence).
+
+```{r FigOccurrence, fig.cap = "The proportion of plots affected by the mountain pine beetle (MPB), spruce beetle (SB), western balsam bark beetle (WBBB), or any bark beetle (i.e., MPB, SB or WBBB) by the identity of hosts species susceptible to bark beetle infestation. For host identities, PICO is lodgepole pine, PIEN is Engelmann spruce, and ABLA is subalpine fir. Astericks above bars indiciate that proportion plots affected by the individual bark beelte species was significantly less than the proportion of plots affected by any bark beetle species.",  out.width = "504pt"}
 knitr::include_graphics( here("Results/Figures/FigureOccurrencebySuitablehosts.jpg"))
 ```
 
-Given suitable stand conditions for multiple agents, is the severity of cumulative bark beetle-driven tree mortality greater in stands with multiple hosts?
-
-In stands suitable for all three hosts, cumulative mortality was significantly greater than mortality by a single agent. \@ref(fig:FigSeverity). When stand conditions were suitable for only two bark beetles, the severity of cumulative tree mortality was driven by the most common agent (MPB > SB > WBBB) and was not significantly different than the cummualtive mortality.
+## Is the severity of cumulative bark beetle-driven tree mortality greater in stands with multiple susceptible hosts?
 
 ```{r severity by suitable hosts}
 dfpred <- merge(BBpred, df, id.vars="PLT_CN", all=T)
@@ -1599,26 +1598,43 @@ dfpred <- dfpred[!(dfpred$suitablehosts == "PICO+ABLA" & dfpred$focalagent=="SB"
 dfpred <- dfpred[!(dfpred$suitablehosts == "PIEN+ABLA" & dfpred$focalagent=="MPB"),]
 dfpred$suitablehostsP <- factor(dfpred$suitablehosts, levels=c("PICO+PIEN",  "PICO+ABLA", "PIEN+ABLA",  "PICO+PIEN+ABLA"), labels=c("PICO & PIEN",  "PICO & ABLA", "PIEN & ABLA",  "PICO, PIEN, & ABLA"), ordered=T)
 
-ggseverity <- ggplot(dfpred, aes(x=focalagent, y=propTBA*100, fill=focalagent, colour=focalagent))+geom_boxplot(notch=T)+facet_grid(.~suitablehostsP, scales="free_x", space="free_x")+xlab("bark beetle species")+scale_fill_manual(values=adjust_transparency(c(p1col[1:3], gray(0.3)), 0.5))+scale_colour_manual(values=c(p1col[1:3], gray(0.3)))+theme(legend.position = "none")+ylim(1,110)+geom_text(aes(label=pplot), vjust=-0.1,size=9, col="black")+ylab("Severity (% BA affected)")
+dfpred$focalagent2 <- factor(dfpred$focalagent, levels=levels(dfpred$focalagent), labels=c("MPB", "SB", "WBBB", "All"), ordered=T)
+
+ggseverity <- ggplot(dfpred, aes(x=focalagent2, y=propTBA*100, fill=focalagent2, colour=focalagent))+geom_boxplot(notch=F)+facet_grid(.~suitablehostsP, scales="free_x", space="free_x")+xlab("bark beetle species")+scale_fill_manual(values=adjust_transparency(c(p1col[1:3], gray(0.3)), 0.5))+scale_colour_manual(values=c(p1col[1:3], gray(0.3)))+theme(legend.position = "none")+ylim(1,110)+geom_text(aes(label=pplot), vjust=-0.1,size=9, col="black")+ylab("Severity (% BA affected)")
 
 ggsave(here("Results/Figures/FigureSevertitybySuitablehosts.jpg"), plot=ggseverity, width=fig.width2,height=fig.width1*0.66,units="in")
-
-
 ```
 
-```{r FigSeverity, fig.cap = "Severity", out.width = "504.8pt"}
+In stands susceptible for all three hosts, cumulative mortality was significantly greater than mortality by a single bark beetle species (Fig. \@ref(fig:FigSeverity). When stand conditions were suitable for only two bark beetles, the severity of cumulative tree mortality was driven by the most commonly occurring agent (MPB > SB > WBBB) and was not significantly different than the cumulative mortality (Fig. \@ref(fig:FigSeverity).
+
+```{r FigSeverity, fig.cap= "Boxplots illustrating the severity of mortality (% of total basal area) attributed to the mountain pine beetle (MPB), spruce beetle (SB), western balsam bark beetle (WBBB), or all bark beetles (i.e., cumulative mortality due to MPB, SB and WBBB) by the identity of hosts species susceptible to bark beetle infestation. For host identities, PICO is lodgepole pine, PIEN is Engelmann spruce, and ABLA is subalpine fir. The bottom and top limits of each box are the lower and upper quartiles, respectively; the thick black line within the box is the median; error bars equal ±1.5 times the interquartile range; and points denote outliers, values outside ±1.5 times the interquartile range. Astericks above boxes indicate that severity bark beetle mortality attributed to the individual species was significantly less than the cumulative mortality due to all bark beetles.", out.width = "504pt"}
 knitr::include_graphics( here("Results/Figures/FigureSevertitybySuitablehosts.jpg"))
 ```
 
-## Given suitable stand conditions, is co-occurrence of multiple agents common?
+## Is the  co-occurrence of multiple agents common?
 
-Not really, only 21.3% (n=461) of stands suitable for multiple agents were affected by multiple agents. When multiple agents occur, the most commonly occurring agents was MPB (n=341), followed by SB (n=317) and WBBB (n=308). The most commonly occurring combinations of agents was MPB and SB (33.2% of cases; n=153), followed by MPB and WBBB (31.2% of cases; n=144) and then SB and WBBB (26% of case; n=120). The combination of all three agents was rare (9.5% of cases; n=44).
+Across all 10,439 FIA plots, only 5.3% (n=539) experience mortality due to multiple bark beetle species. However, MPB, SB, and WBBB were only present in 23.4% (n=2,441), 9.9% (n=1034), and 7.8% (n=813) of plots,respectively. Thus the number of plots with at least two bark beetle species co-occurring is more than 2x greater than would be expected if MPB, SB, WBBB occurred independently. 
+
+Given only the 2,163 stands where multiple tree species were susceptible to bark beetle infestation, 21.3% (n=461) were affected by multiple agents. When multiple tree species were susceptible to bark beetle infestation, the most commonly occurring agents was MPB (n=341), followed by SB (n=317) and WBBB (n=308). The most commonly occurring combinations of agents was MPB and SB (33.2% of cases; n=153), followed by MPB and WBBB (31.2% of cases; n=144) and SB and WBBB (26% of case; n=120). The combination of all three agents was extremely rare (9.5% of cases; n=44).
 
 ```{r determine co-occurrence of agents by hosts}
-dfpred <- merge(BBpred, df, id.vars="PLT_CN", all=T)
+datBB.c <- df[df$focalhost=="Any",]
+table(datBB.c$agents)
+# nrow(datBB.c[datBB.c$agents %in% c("MPB+SB+WBBB",  "SB+WBBB", "MPB+WBBB", "MPB+SB") ,])/nrow(datBB.c) 
+# 5.3 % of plots were affected by multiple agents
+
+table(datBB.c$agentSB)[2]/nrow(datBB.c) * table(datBB.c$agentMPB)[2]/nrow(datBB.c) * table(datBB.c$agentWBBB)[2]/nrow(datBB.c)
+
+table(datBB.c$agentSB)[2]/nrow(datBB.c) * table(datBB.c$agentMPB)[2]/nrow(datBB.c)
+
+datBB.c[datBB.c$agents %in% c("MPB+SB+WBBB",  "SB+WBBB", "MPB+WBBB", "MPB+SB") ,]  %>% group_by( agents) %>% summarise(n = n())%>% mutate(freq = n / sum(n))
+
+table(datBB.c$agentSB)
+
+dfpred <- merge(BBpred, datBB.c, id.vars="PLT_CN", all=T)
 dfpred <- dfpred[!dfpred$agentsuitable=="none",]
 
-dfpred[dfpred$focalagent=="Any" &dfpred$suitablehosts %in% c("MPB+SB+WBBB",  "SB+WBBB", "MPB+WBBB", "MPB+SB")& dfpred$agentsF %in% c("MPB+SB+WBBB",  "SB+WBBB", "MPB+WBBB", "MPB+SB") ,]  %>% group_by( agentsF) %>% summarise(n = n())%>% mutate(freq = n / sum(n))
+#dfpred[dfpred$focalagent=="Any" &dfpred$suitablehosts %in% c("MPB+SB+WBBB",  "SB+WBBB", "MPB+WBBB", "MPB+SB")& dfpred$agentsF %in% c("MPB+SB+WBBB",  "SB+WBBB", "MPB+WBBB", "MPB+SB") ,]  %>% group_by( agentsF) %>% summarise(n = n())%>% mutate(freq = n / sum(n))
 
 
 dfpred$suitablehostsF <-dfpred$suitablehosts
@@ -1626,24 +1642,25 @@ dfpred$suitablehostsF <- factor(dfpred$suitablehosts, levels=levels(dfpred$suita
 dfpred$agentsFplongrev <- factor(dfpred$agents,levels=c("MPB+SB+WBBB", "SB+WBBB", "MPB+WBBB", "MPB+SB", "WBBB", "SB", "MPB", "none"), labels=c("MPB, SB, & WBBB", "SB & WBBB", "MPB & WBBB", "MPB & SB", "WBBB", "SB", "MPB", "none"), ordered=T)
 
 
-dfpred[dfpred$focalagent=="Any" & dfpred$suitablehostsF %in% c( "PICO\n&\nPIEN", "PICO\n&\nABLA", "PIEN\n&\nABLA", "PICO,\nPIEN,\n&\nABLA"),]  %>% summarise(n = n())
+#dfpred[dfpred$focalagent=="Any" & dfpred$suitablehostsF %in% c( "PICO\n&\nPIEN", "PICO\n&\nABLA", "PIEN\n&\nABLA", "PICO,\nPIEN,\n&\nABLA"),]  %>% summarise(n = n())
 
 MPBx <- dfpred[dfpred$focalagent=="Any" & dfpred$suitablehostsF %in% c( "PICO\n&\nPIEN", "PICO\n&\nABLA", "PICO,\nPIEN,\n&\nABLA") & dfpred$agentsF %in% c("MPB+SB+WBBB",  "MPB+WBBB", "MPB+SB") ,]  %>% group_by(suitablehostsF, agentsFplongrev) %>% summarise(n = n())%>% mutate(freq = n / sum(n))
-sum(MPBx$n)
-sum(MPBx$n)/nrow(dfpred[dfpred$suitablehostsF %in% c( "PICO\n&\nPIEN", "PICO\n&\nABLA", "PICO,\nPIEN,\n&\nABLA"),])
+#sum(MPBx$n)
+#sum(MPBx$n)/nrow(dfpred[dfpred$suitablehostsF %in% c( "PICO\n&\nPIEN", "PICO\n&\nABLA", "PICO,\nPIEN,\n&\nABLA"),])
+
+#sum(MPBx$n)/nrow(dfpred[dfpred$suitablehostsF %in% c( "PICO\n&\nPIEN", "PICO\n&\nABLA", "PICO,\nPIEN,\n&\nABLA"),])
 
 SBx <- dfpred[dfpred$focalagent=="Any" & dfpred$suitablehostsF %in% c( "PICO\n&\nPIEN", "PIEN\n&\nABLA", "PICO,\nPIEN,\n&\nABLA") & dfpred$agentsF %in% c("MPB+SB+WBBB",  "SB+WBBB", "MPB+SB") ,]  %>% group_by(suitablehostsF, agentsFplongrev) %>% summarise(n = n())%>% mutate(freq = n / sum(n))
-sum(SBx$n)
-sum(SBx$n)/nrow(dfpred[dfpred$suitablehostsF %in% c( "PICO\n&\nPIEN", "PIEN\n&\nABLA", "PICO,\nPIEN,\n&\nABLA"),])
+#sum(SBx$n)
+#sum(SBx$n)/nrow(dfpred[dfpred$suitablehostsF %in% c( "PICO\n&\nPIEN", "PIEN\n&\nABLA", "PICO,\nPIEN,\n&\nABLA"),])
 
 WBBBx <- dfpred[dfpred$focalagent=="Any" & dfpred$suitablehostsF %in% c( "PIEN\n&\nABLA", "PICO\n&\nABLA", "PICO,\nPIEN,\n&\nABLA") & dfpred$agentsF %in% c("MPB+SB+WBBB",  "SB+WBBB", "MPB+WBBB") ,]  %>% group_by(suitablehostsF, agentsFplongrev) %>% summarise(n = n())%>% mutate(freq = n / sum(n))
-sum(WBBBx$n)
-sum(WBBBx$n)/nrow(dfpred[dfpred$suitablehostsF %in% c( "PIEN\n&\nABLA", "PICO\n&\nABLA", "PICO,\nPIEN,\n&\nABLA"),])
-
+#sum(WBBBx$n)
+#sum(WBBBx$n)/nrow(dfpred[dfpred$suitablehostsF %in% c( "PIEN\n&\nABLA", "PICO\n&\nABLA", "PICO,\nPIEN,\n&\nABLA"),])
 
 
 ### 
-table(dfpred$suitablehostsF, dfpred$agents)
+#table(dfpred$suitablehostsF, dfpred$agents)
 x <- dfpred[dfpred$focalhost=="Any" & dfpred$suitablehostsF %in% c("PICO\n&\nPIEN", "PICO\n&\nABLA", "PIEN\n&\nABLA", "PICO,\nPIEN,\n&\nABLA") &  !dfpred$agentsFplongrev =="none",]  %>% group_by(suitablehostsF, agentsFplongrev) %>% summarise(n = n())%>% mutate(freq = n / sum(n))
 
 xPICO <-x[x$suitablehostsF %in% c("PICO\n&\nPIEN", "PICO\n&\nABLA",  "PICO,\nPIEN,\n&\nABLA"),]
@@ -1652,7 +1669,7 @@ xPICO <-x[x$suitablehostsF %in% c("PICO\n&\nPIEN", "PICO\n&\nABLA",  "PICO,\nPIE
 ## Agents given presence of any agent
 co <- dfpred[!dfpred$focalhost=="Any" ,]  %>% group_by(suitablehostsF, agentsFplongrev) %>% summarise(n = n())%>% mutate(freq = n / sum(n))
 
-co[co$agentsFplongrev %in% c("MPB, SB, & WBBB", "SB & WBBB", "MPB & WBBB", "MPB & SB") & co$suitablehostsF %in% c("PICO\n&\nPIEN", "PICO\n&\nABLA", "PIEN\n&\nABLA", "PICO,\nPIEN,\n&\nABLA"),]
+#co[co$agentsFplongrev %in% c("MPB, SB, & WBBB", "SB & WBBB", "MPB & WBBB", "MPB & SB") & co$suitablehostsF %in% c("PICO\n&\nPIEN", "PICO\n&\nABLA", "PIEN\n&\nABLA", "PICO,\nPIEN,\n&\nABLA"),]
 
 
 ggAgentsbySuitablehosts <- ggplot(dfpred[dfpred$focalhost=="Any",], aes(x=suitablehostsF,fill=agentsFplongrev))+geom_bar()+theme(legend.title = element_blank())+scale_fill_manual(values=p2col)+theme(axis.title.x=element_blank())
@@ -1660,12 +1677,60 @@ ggAgentsbySuitablehosts <- ggplot(dfpred[dfpred$focalhost=="Any",], aes(x=suitab
 ggsave(here("Results/Figures/Figure-AgentsbySuitablehosts.jpg"), plot=ggAgentsbySuitablehosts , width=fig.width1.5,height=fig.width1*0.75,units="in")
 ```
 
+```{r determine co-occurrence of agents by suitable hosts}
+dfpred <- merge(BBpred, df, id.vars="PLT_CN", all=T)
+dfpred <- dfpred[!dfpred$agentsuitable=="none",]
+
+#dfpred[dfpred$focalagent=="Any" &dfpred$suitablehosts %in% c("MPB+SB+WBBB",  "SB+WBBB", "MPB+WBBB", "MPB+SB")& dfpred$agentsF %in% c("MPB+SB+WBBB",  "SB+WBBB", "MPB+WBBB", "MPB+SB") ,]  %>% group_by( agentsF) %>% summarise(n = n())%>% mutate(freq = n / sum(n))
+
+
+dfpred$suitablehostsF <-dfpred$suitablehosts
+dfpred$suitablehostsF <- factor(dfpred$suitablehosts, levels=levels(dfpred$suitablehosts)[-1], labels=c("PICO", "PIEN", "ABLA", "PICO\n&\nPIEN", "PICO\n&\nABLA", "PIEN\n&\nABLA", "PICO,\nPIEN,\n&\nABLA"))
+dfpred$agentsFplongrev <- factor(dfpred$agents,levels=c("MPB+SB+WBBB", "SB+WBBB", "MPB+WBBB", "MPB+SB", "WBBB", "SB", "MPB", "none"), labels=c("MPB, SB, & WBBB", "SB & WBBB", "MPB & WBBB", "MPB & SB", "WBBB", "SB", "MPB", "none"), ordered=T)
+
+
+#dfpred[dfpred$focalagent=="Any" & dfpred$suitablehostsF %in% c( "PICO\n&\nPIEN", "PICO\n&\nABLA", "PIEN\n&\nABLA", "PICO,\nPIEN,\n&\nABLA"),]  %>% summarise(n = n())
+
+MPBx <- dfpred[dfpred$focalagent=="Any" & dfpred$suitablehostsF %in% c( "PICO\n&\nPIEN", "PICO\n&\nABLA", "PICO,\nPIEN,\n&\nABLA") & dfpred$agentsF %in% c("MPB+SB+WBBB",  "MPB+WBBB", "MPB+SB") ,]  %>% group_by(suitablehostsF, agentsFplongrev) %>% summarise(n = n())%>% mutate(freq = n / sum(n))
+#sum(MPBx$n)
+#sum(MPBx$n)/nrow(dfpred[dfpred$suitablehostsF %in% c( "PICO\n&\nPIEN", "PICO\n&\nABLA", "PICO,\nPIEN,\n&\nABLA"),])
+
+#sum(MPBx$n)/nrow(dfpred[dfpred$suitablehostsF %in% c( "PICO\n&\nPIEN", "PICO\n&\nABLA", "PICO,\nPIEN,\n&\nABLA"),])
+
+SBx <- dfpred[dfpred$focalagent=="Any" & dfpred$suitablehostsF %in% c( "PICO\n&\nPIEN", "PIEN\n&\nABLA", "PICO,\nPIEN,\n&\nABLA") & dfpred$agentsF %in% c("MPB+SB+WBBB",  "SB+WBBB", "MPB+SB") ,]  %>% group_by(suitablehostsF, agentsFplongrev) %>% summarise(n = n())%>% mutate(freq = n / sum(n))
+#sum(SBx$n)
+#sum(SBx$n)/nrow(dfpred[dfpred$suitablehostsF %in% c( "PICO\n&\nPIEN", "PIEN\n&\nABLA", "PICO,\nPIEN,\n&\nABLA"),])
+
+WBBBx <- dfpred[dfpred$focalagent=="Any" & dfpred$suitablehostsF %in% c( "PIEN\n&\nABLA", "PICO\n&\nABLA", "PICO,\nPIEN,\n&\nABLA") & dfpred$agentsF %in% c("MPB+SB+WBBB",  "SB+WBBB", "MPB+WBBB") ,]  %>% group_by(suitablehostsF, agentsFplongrev) %>% summarise(n = n())%>% mutate(freq = n / sum(n))
+#sum(WBBBx$n)
+#sum(WBBBx$n)/nrow(dfpred[dfpred$suitablehostsF %in% c( "PIEN\n&\nABLA", "PICO\n&\nABLA", "PICO,\nPIEN,\n&\nABLA"),])
+
+
+### 
+#table(dfpred$suitablehostsF, dfpred$agents)
+x <- dfpred[dfpred$focalhost=="Any" & dfpred$suitablehostsF %in% c("PICO\n&\nPIEN", "PICO\n&\nABLA", "PIEN\n&\nABLA", "PICO,\nPIEN,\n&\nABLA") &  !dfpred$agentsFplongrev =="none",]  %>% group_by(suitablehostsF, agentsFplongrev) %>% summarise(n = n())%>% mutate(freq = n / sum(n))
+
+xPICO <-x[x$suitablehostsF %in% c("PICO\n&\nPIEN", "PICO\n&\nABLA",  "PICO,\nPIEN,\n&\nABLA"),]
+#
+
+## Agents given presence of any agent
+co <- dfpred[!dfpred$focalhost=="Any" ,]  %>% group_by(suitablehostsF, agentsFplongrev) %>% summarise(n = n())%>% mutate(freq = n / sum(n))
+
+#co[co$agentsFplongrev %in% c("MPB, SB, & WBBB", "SB & WBBB", "MPB & WBBB", "MPB & SB") & co$suitablehostsF %in% c("PICO\n&\nPIEN", "PICO\n&\nABLA", "PIEN\n&\nABLA", "PICO,\nPIEN,\n&\nABLA"),]
+
+
+ggAgentsbySuitablehosts <- ggplot(dfpred[dfpred$focalhost=="Any",], aes(x=suitablehostsF,fill=agentsFplongrev))+geom_bar()+theme(legend.title = element_blank())+scale_fill_manual(values=p2col)+theme(axis.title.x=element_blank())
+
+ggsave(here("Results/Figures/Figure-AgentsbySuitablehosts.jpg"), plot=ggAgentsbySuitablehosts , width=fig.width1.5,height=fig.width1*0.75,units="in")
+```
+
+
 ```{r FigCoOccurrence, fig.cap = "Co-occurrence",  out.width = "504.8pt", eval=F}
 knitr::include_graphics( here("Results/Figures/Figure-AgentsbySuitablehosts.jpg"))
 ```
 
 ##  Is severity greater in stands with multiple agents?
-```{r multiple agents}
+```{r multiple agents, eval=F}
 library(rcompanion)
 dfpred <- merge(BBpred, df, id.vars="PLT_CN", all=T)
 dfpred <- dfpred[!dfpred$suitablehosts == "none", ]
@@ -1759,8 +1824,6 @@ ggsave(here("Results/Figures/FigureHotSpotSeverity.jpg"), plot=ggmultipleseverit
 
 ```
 
-Generally, yes. 
-
 When plots contained two tree species susceptible to bark beetles, the presence of both bark beetle species increased tree mortality relative to presence of only one bark beetle species (Fig. \@ref(fig:FigHotSpotSeverity)). The increase was greatest for stands that contained both MPB and SB; the median severity of plots with both MPB and SB was 33.7 percentage points greater than MPB alone and 38.3 percentage points greater than SB alone. The median severity of plots with both MPB and WBBB was 7.0 percentage points greater than MPB alone and 13.6 percentage points greater than WBBB alone. The median severity of plots with both SB and WBBB was 14.7 percentage points greater than SB alone and 19.8 percentage points greater than WBBB alone.
 
 Given stand conditions that made all three tree species susceptible to bark beetles, the highest rates of mortality were in plots where both MPB and SB present; whether or not WBBB was also present did not affect mortality severity (~1 percentage point difference in median severity; Fig. \@ref(fig:FigHotSpotSeverity)). 
@@ -1828,8 +1891,6 @@ ggsave(here("Results/Figures/Confusion.jpg"), plot=ggconfused, width=fig.width1,
 knitr::include_graphics(here("Results/Figures/Confusion.jpg"))
 ```
 
-
-
 ```{r FigPartial,  fig.cap = "A caption", out.width = "504.8pt"}
 MPBpp <- read.csv(here("Results/RF-partialdependence-agentMPB-occurrence-SMOTE.csv"))
 MPBpp$focalagent <- "MPB"
@@ -1852,15 +1913,15 @@ xm <- melt(x, id.vars=c("focalagent", "affected01"))
 colnames(xm) <- c("focalagent", "affected01", "var", "value")
 xm$var <- factor(xm$var, levels=c("QMD.host", "propBA", "BA.host"), labels=c("QMD", "propBA", "BA"))
 
-pBA1 <- ggplot(ppdat[ppdat$var=="BA",], aes(x=value, y=yhat, col=focalagent))+geom_smooth()+scale_color_manual(values=p1col)+theme(legend.position="none")+ylab("probability of occurrence")+theme(axis.title.x=element_blank(),axis.text.x=element_blank() )
+pBA1 <- ggplot(ppdat[ppdat$var=="BA",], aes(x=value, y=yhat, col=focalagent))+geom_smooth(se=F)+scale_color_manual(values=p1col)+theme(legend.position="none")+ylab("probability of occurrence")+theme(axis.title.x=element_blank(),axis.text.x=element_blank() )
 
-pBA2 <- ggplot(xm[xm$var=="BA",],aes(x=value, y=focalagent, fill=interaction(focalagent, affected01)))+geom_boxplot()+scale_fill_manual(values=c(adjust_transparency(p1col[1:3], alpha=0.25), p1col[1:3]))+theme(legend.position="none")+ylab("bark beetle")+xlab("basal area")
+pBA2 <- ggplot(xm[xm$var=="BA",],aes(x=value, y=focalagent, fill=interaction(focalagent, affected01)))+geom_boxplot(se=F)+scale_fill_manual(values=c(adjust_transparency(p1col[1:3], alpha=0.25), p1col[1:3]))+theme(legend.position="none")+ylab("bark beetle")+xlab("basal area")
 
-pQMD1 <- ggplot(ppdat[ppdat$var=="QMD",], aes(x=value, y=yhat, col=focalagent))+geom_smooth()+scale_color_manual(values=p1col)+theme(legend.position="none")+ylab("probability of occurrence")+theme(axis.title.x=element_blank(),axis.text.x=element_blank() )
+pQMD1 <- ggplot(ppdat[ppdat$var=="QMD",], aes(x=value, y=yhat, col=focalagent))+geom_smooth(se=F)+scale_color_manual(values=p1col)+theme(legend.position="none")+ylab("probability of occurrence")+theme(axis.title.x=element_blank(),axis.text.x=element_blank() )
 
 pQMD2 <- ggplot(xm[xm$var=="QMD",],aes(x=value, y=focalagent, fill=interaction(focalagent, affected01)))+geom_boxplot()+scale_fill_manual(values=c(adjust_transparency(p1col[1:3], alpha=0.25), p1col[1:3]))+theme(legend.position="none")+ylab("")+xlab("QMD")
 
-ppropBA1 <- ggplot(ppdat[ppdat$var=="propBA",], aes(x=value*100, y=yhat, col=focalagent))+geom_smooth()+scale_color_manual(values=p1col)+theme(legend.position="none")+ylab("probability of occurrence")+theme(axis.title.x=element_blank(),axis.text.x=element_blank() )
+ppropBA1 <- ggplot(ppdat[ppdat$var=="propBA",], aes(x=value*100, y=yhat, col=focalagent))+geom_smooth(se=F)+scale_color_manual(values=p1col)+theme(legend.position="none")+ylab("probability of occurrence")+theme(axis.title.x=element_blank(),axis.text.x=element_blank() )
 
 ppropBA2 <- ggplot(xm[xm$var=="propBA",],aes(x=value*100, y=focalagent, fill=interaction(focalagent, affected01)))+geom_boxplot()+scale_fill_manual(values=c(adjust_transparency(p1col[1:3], alpha=0.25), p1col[1:3]))+theme(legend.position="none")+ylab("")+xlab("% BA")
 
@@ -1870,10 +1931,9 @@ ppplot <- pBA1  + pQMD1 +theme(axis.title.y=element_blank(),axis.text.y=element_
 ggsave(here("Results/Figures/PartialDependence.jpg"), plot=ppplot, width=fig.width2,height=fig.width1,units="in")
 ```
 
+Consistent with existing stand hazard ratings, the probability of each bark beetle species occurring generally increased with host basal area, quadratic mean diameter, and percent basal area (Fig. \@ref(fig:partialFig)). However, both MPB and WBBB exhibited a slight decrease in the probability of outbreak at very high basal areas and all three bark beetle species exhibited a lower probability of outbreak in stands where host trees were very large (i.e. high QMD values). WBBB also exhibited a decline in the probability of outbreak when subalpine fir comprised a relatively high proportion of the basal area. 
 
-
-In general, the probability of each bark beetle species occurring increased with host basal area, quadratic mean diameter, and percent basal area. 
-```{r partialFig}
+```{r partialFig, fig.cap="The associations between the probability of occurrence of the mountain pine beetle (MPB; red), spruce beetle (SB; blue); and western balsam bark beetle (WBBB; yellow) and three common measuree of stand suceptibility to bark beetl beetle outbreak, basal area (BA), quadratic mean diameter (QMD), and host dominace (% BA). The top row illustrates smoothed partial dependence results from Random Forest modeling, while in the bottom row boxplots illustrate the distribution of values for stands affected (dark colors) and unaffected (light colors) by each bark beetle species."}
 knitr::include_graphics(here("Results/Figures/PartialDependence.jpg"))
 ```
 
